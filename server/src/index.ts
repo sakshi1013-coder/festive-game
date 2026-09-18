@@ -22,7 +22,7 @@ async function main() {
     process.exit(1);
   }
 
-  await mongoose.connect(MONGODB_URI);
+  await mongoose.connect(MONGODB_URI, { dbName: 'bappaverse' });
   console.log('[DB] Connected to MongoDB Atlas');
 
   // ─── Express ──────────────────────────────────────────────────────────────

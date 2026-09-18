@@ -359,7 +359,7 @@ async function seed() {
     process.exit(1);
   }
 
-  await mongoose.connect(MONGODB_URI);
+  await mongoose.connect(MONGODB_URI, { dbName: 'bappaverse' });
   console.log('✅ Connected to MongoDB\n');
 
   // ─── Seed Admin User ────────────────────────────────────────────────────
