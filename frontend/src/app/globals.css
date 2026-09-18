@@ -1,0 +1,319 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap');
+
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    color: #292524;
+    background-color: #FFFDF8;
+  }
+
+  body {
+    background-color: #FFFDF8;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', system-ui, sans-serif;
+    color: #292524;
+    line-height: 1.2;
+  }
+}
+
+@layer components {
+  /* ─── Buttons ─────────────────────────────────────── */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 
+           bg-primary text-white font-semibold rounded-xl
+           hover:bg-primary-dark active:scale-95
+           transition-all duration-200 shadow-saffron
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
+  }
+
+  .btn-maroon {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 
+           bg-maroon text-white font-semibold rounded-xl
+           hover:bg-maroon-dark active:scale-95
+           transition-all duration-200 shadow-sm
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-maroon/30;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 
+           border-2 border-bappa-border text-bappa-text font-semibold rounded-xl
+           hover:border-primary hover:text-primary hover:bg-primary-light active:scale-95
+           transition-all duration-200
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 
+           text-bappa-muted font-medium rounded-lg
+           hover:bg-surface-secondary hover:text-bappa-text active:scale-95
+           transition-all duration-200;
+  }
+
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 
+           bg-gold text-white font-semibold rounded-xl
+           hover:bg-gold-dark active:scale-95
+           transition-all duration-200 shadow-gold;
+  }
+
+  .btn-sm {
+    @apply px-4 py-2 text-sm;
+  }
+
+  .btn-lg {
+    @apply px-8 py-4 text-lg;
+  }
+
+  /* ─── Cards ───────────────────────────────────────── */
+  .card {
+    @apply bg-surface rounded-2xl shadow-card border border-bappa-border p-6;
+  }
+
+  .card-hover {
+    @apply bg-surface rounded-2xl shadow-card border border-bappa-border p-6
+           hover:shadow-card-hover hover:-translate-y-0.5 
+           transition-all duration-200 cursor-pointer;
+  }
+
+  .card-festive {
+    @apply bg-surface rounded-2xl shadow-card border border-bappa-border p-6
+           bg-festival-pattern;
+  }
+
+  /* ─── Form Elements ───────────────────────────────── */
+  .input-field {
+    @apply w-full px-4 py-3 bg-surface border border-bappa-border rounded-xl
+           text-bappa-text placeholder:text-bappa-muted/60
+           focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
+           transition-all duration-200;
+  }
+
+  .input-label {
+    @apply block text-sm font-semibold text-bappa-text mb-1.5;
+  }
+
+  /* ─── Badges ──────────────────────────────────────── */
+  .badge,
+  .badge-saffron,
+  .badge-maroon,
+  .badge-gold,
+  .badge-success,
+  .badge-error,
+  .badge-muted {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .badge-saffron {
+    @apply bg-primary-light text-primary;
+  }
+
+  .badge-maroon {
+    @apply bg-maroon-light text-maroon;
+  }
+
+  .badge-gold {
+    @apply bg-gold-light text-gold-dark;
+  }
+
+  .badge-success {
+    @apply bg-success-light text-success;
+  }
+
+  .badge-error {
+    @apply bg-error-light text-error;
+  }
+
+  .badge-muted {
+    @apply bg-bappa-border text-bappa-muted;
+  }
+
+  /* ─── Housie Ticket ───────────────────────────────── */
+  .ticket-cell,
+  .ticket-cell-number,
+  .ticket-cell-blank,
+  .ticket-cell-marked,
+  .ticket-cell-claimed {
+    @apply w-full aspect-square flex items-center justify-center
+           text-sm sm:text-base font-bold rounded-xl border border-bappa-border
+           transition-all duration-200 select-none;
+  }
+
+  .ticket-cell-number {
+    @apply bg-surface text-bappa-text hover:border-primary/50 hover:bg-primary-light/30 active:scale-95 cursor-pointer shadow-sm;
+  }
+
+  .ticket-cell-blank {
+    @apply bg-surface-secondary border-transparent cursor-default;
+  }
+
+  .ticket-cell-marked {
+    @apply bg-primary text-white border-primary shadow-saffron scale-100 ring-2 ring-primary/40 cursor-pointer active:scale-95;
+  }
+
+  .ticket-cell-claimed {
+    @apply bg-gold text-white border-gold shadow-gold ring-2 ring-gold/40;
+  }
+
+  /* ─── Number Board ────────────────────────────────── */
+  .number-ball,
+  .number-ball-uncalled,
+  .number-ball-called,
+  .number-ball-current {
+    @apply aspect-square w-full max-w-[42px] max-h-[42px] rounded-full flex items-center justify-center
+           text-xs sm:text-sm font-bold transition-all duration-300 mx-auto select-none cursor-pointer;
+  }
+
+  .number-ball-uncalled {
+    @apply bg-surface border border-bappa-border text-bappa-muted/75 hover:border-primary/50 hover:text-bappa-text hover:scale-105;
+  }
+
+  .number-ball-called {
+    @apply bg-primary text-white shadow-saffron font-extrabold ring-1 ring-primary/40 hover:brightness-105;
+  }
+
+  .number-ball-current {
+    @apply bg-maroon text-white shadow-lg font-black ring-4 ring-maroon/25 animate-pulse-gold;
+  }
+
+  /* ─── Stat Cards ──────────────────────────────────── */
+  .stat-card {
+    @apply bg-surface rounded-2xl shadow-card border border-bappa-border p-6 flex flex-col gap-1;
+  }
+
+  .stat-value {
+    @apply text-3xl font-bold text-bappa-text;
+  }
+
+  .stat-label {
+    @apply text-sm text-bappa-muted font-medium;
+  }
+
+  /* ─── Section headings ────────────────────────────── */
+  .section-title {
+    @apply text-2xl font-bold text-bappa-text;
+  }
+
+  .section-subtitle {
+    @apply text-bappa-muted mt-1;
+  }
+
+  /* ─── Festive Divider ─────────────────────────────── */
+  .divider-festive {
+    @apply flex items-center gap-3 my-6;
+  }
+
+  .divider-festive::before,
+  .divider-festive::after {
+    content: '';
+    @apply flex-1 h-px bg-bappa-border;
+  }
+
+  /* ─── Scrollbar ───────────────────────────────────── */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #E7E0D5 transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: #E7E0D5;
+    border-radius: 9999px;
+  }
+}
+
+@layer utilities {
+  .text-gradient-saffron {
+    background: linear-gradient(135deg, #D97706, #B45309);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #C69214, #D97706);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-maroon {
+    background: linear-gradient(135deg, #7F1D1D, #991B1B);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-festive-dots {
+    background-image: radial-gradient(circle, rgba(217, 119, 6, 0.12) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .bg-festive-grid {
+    background-image: 
+      linear-gradient(rgba(231, 224, 213, 0.4) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(231, 224, 213, 0.4) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+}
+
+/* ─── Transitions ─────────────────────────────────────── */
+.page-transition {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* ─── Ticket Grid ─────────────────────────────────────── */
+.ticket-grid {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 6px;
+}
+
+@media (max-width: 640px) {
+  .ticket-grid {
+    gap: 4px;
+  }
+}
+
+/* ─── Number Board Grid ───────────────────────────────── */
+.number-board {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 10px;
+  padding: 8px 4px;
+}
+
+@media (max-width: 768px) {
+  .number-board {
+    gap: 6px;
+    padding: 4px 0;
+  }
+}
+
+/* ─── Toast ───────────────────────────────────────────── */
+.toast-success {
+  @apply bg-success-light border border-success/20 text-success rounded-xl shadow-card;
+}
+
+.toast-error {
+  @apply bg-error-light border border-error/20 text-error rounded-xl shadow-card;
+}

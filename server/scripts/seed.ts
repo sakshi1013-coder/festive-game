@@ -1,0 +1,431 @@
+/**
+ * BappaVerse Database Seed Script
+ * Run: npx ts-node-dev scripts/seed.ts
+ *
+ * Seeds:
+ * - Admin/Host user (email from ADMIN_EMAIL env or admin@bappaverse.com)
+ * - 50+ quiz questions
+ */
+
+import 'dotenv/config';
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import { User, QuizQuestion, Aarti } from '../src/models/index';
+import { VERIFIED_AARTIS } from '../src/data/verifiedAartis';
+
+const MONGODB_URI = process.env.MONGODB_URI || '';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@bappaverse.com';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'BappaVerse2024!';
+
+const QUESTIONS = [
+  // ─── बाप्पाची माहिती (Ganapati Basics) ───────────────────────────────────
+  {
+    question: "श्री गणपती बाप्पाचे मुख्य वाहन कोणते आहे?",
+    options: ["उंदीर (मूषक)", "हंस", "गरुड", "नंदी"],
+    correctAnswer: 0,
+    category: "Ganapati Basics",
+    difficulty: "easy",
+    timerSeconds: 20,
+  },
+  {
+    question: "श्री गणेशाच्या आई-वडिलांचे नाव काय आहे?",
+    options: ["भगवान शिव आणि माता पार्वती", "भगवान विष्णू आणि माता लक्ष्मी", "ब्रह्मदेव आणि सरस्वती", "इंद्रदेव आणि इंद्राणी"],
+    correctAnswer: 0,
+    category: "Ganapati Basics",
+    difficulty: "easy",
+    timerSeconds: 20,
+  },
+  {
+    question: "हिंदू धर्मात श्री गणेशाला प्रामुख्याने कशाचे दैवत मानले जाते?",
+    options: ["विघ्नहर्ता आणि सर्व मंगल कार्यांचे प्रारंभकर्ता", "पर्जन्य देवता", "अग्नि देवता", "फक्त संपत्तीचे देव"],
+    correctAnswer: 0,
+    category: "Ganapati Basics",
+    difficulty: "easy",
+    timerSeconds: 25,
+  },
+  {
+    question: "श्री गणेशाच्या सामान्य रूपात बाप्पाला किती हात असतात?",
+    options: ["२ हात", "४ हात (चतुर्भुज)", "६ हात", "८ हात"],
+    correctAnswer: 1,
+    category: "Ganapati Basics",
+    difficulty: "easy",
+    timerSeconds: 15,
+  },
+  {
+    question: "श्री गणपतीच्या एका हातात कोणता सर्वात आवडता गोड पदार्थ असतो?",
+    options: ["मोदक", "लाडू", "पेढा", "जिलबी"],
+    correctAnswer: 0,
+    category: "Ganapati Basics",
+    difficulty: "easy",
+    timerSeconds: 15,
+  },
+  {
+    question: "श्री गणेशाला 'एकदंत' का म्हटले जाते?",
+    options: ["महाभारत लिहिताना एक दात लेखणी म्हणून तोडल्याने", "युद्धात दात पडल्यामुळे", "बालपणी पडल्यामुळे", "एकच दात उगवल्यामुळे"],
+    correctAnswer: 0,
+    category: "Ganapati Basics",
+    difficulty: "medium",
+    timerSeconds: 25,
+  },
+  {
+    question: "'गणपती' या नावाचा अचूक अर्थ काय आहे?",
+    options: ["गणांचा (शिवाच्या दूतांचा) स्वामी / प्रमुख", "हत्तीचे तोंड असलेला देव", "मोठा देव", "पार्वतीचा सुपुत्र"],
+    correctAnswer: 0,
+    category: "Ganapati Basics",
+    difficulty: "easy",
+    timerSeconds: 20,
+  },
+  {
+    question: "श्री गणपतीच्या गळ्यात जानवे म्हणून कोणाचे रूप धारण केलेले असते?",
+    options: ["सर्प (नाग)", "रुद्राक्ष माळ", "कमळाची माळ", "सोनेरी दोरा"],
+    correctAnswer: 0,
+    category: "Ganapati Basics",
+    difficulty: "medium",
+    timerSeconds: 25,
+  },
+
+  // ─── गणेशोत्सव परंपरा (Ganesh Chaturthi Traditions) ──────────────────────
+  {
+    question: "महाराष्ट्रात गणेशोत्सव प्रामुख्याने किती दिवस साजरा केला जातो?",
+    options: ["१० दिवस (अनंत चतुर्दशीपर्यंत)", "५ दिवस", "७ दिवस", "१५ दिवस"],
+    correctAnswer: 0,
+    category: "Ganesh Chaturthi Traditions",
+    difficulty: "easy",
+    timerSeconds: 20,
+  },
+  {
+    question: "उत्सवाच्या शेवटी गणपतीच्या मूर्तीचे पाण्यात विसर्जन करण्याच्या विधीला काय म्हणतात?",
+    options: ["गणपती विसर्जन", "अभिषेक", "आरती", "महापूजा"],
+    correctAnswer: 0,
+    category: "Ganesh Chaturthi Traditions",
+    difficulty: "easy",
+    timerSeconds: 15,
+  },
+  {
+    question: "गणेश चतुर्थी हिंदू पंचांगानुसार कोणत्या महिन्यात येते?",
+    options: ["भाद्रपद (भाद्रपद शुक्ल चतुर्थी)", "श्रावण", "आश्विन", "कार्तिक"],
+    correctAnswer: 0,
+    category: "Ganesh Chaturthi Traditions",
+    difficulty: "medium",
+    timerSeconds: 20,
+  },
+  {
+    question: "महाराष्ट्रात सार्वजनिक गणेशोत्सवाची सुरुवात सामाजिक ऐक्यासाठी कोणी केली?",
+    options: ["लोकमान्य बाळ गंगाधर टिळक", "महात्मा ज्योतिराव फुले", "छत्रपती शिवाजी महाराज", "गोपाळ गणेश आगरकर"],
+    correctAnswer: 0,
+    category: "Ganesh Chaturthi Traditions",
+    difficulty: "easy",
+    timerSeconds: 20,
+  },
+  {
+    question: "गणपतीच्या आगमनावेळी आणि विसर्जनावेळी कोणता पारंपरिक जयघोष केला जातो?",
+    options: ["गणपती बाप्पा मोरया, पुढच्या वर्षी लवकर या!", "जय भवानी, जय शिवाजी!", "हर हर महादेव!", "जय श्री राम!"],
+    correctAnswer: 0,
+    category: "Ganesh Chaturthi Traditions",
+    difficulty: "easy",
+    timerSeconds: 15,
+  },
+  {
+    question: "गणपती बाप्पाच्या विसर्जनाचा मुख्य दिवस कोणता असतो?",
+    options: ["अनंत चतुर्दशी (१० वा दिवस)", "ऋषिपंचमी", "गौरी विसर्जन", "भाद्रपद पौर्णिमा"],
+    correctAnswer: 0,
+    category: "Ganesh Chaturthi Traditions",
+    difficulty: "easy",
+    timerSeconds: 20,
+  },
+  {
+    question: "गणेशोत्सवादरम्यान गौरीचे आगमन कोणत्या नक्षत्रावर होते?",
+    options: ["अनुराधा नक्षत्र", "रोहिणी नक्षत्र", "हस्त नक्षत्र", "अश्विनी नक्षत्र"],
+    correctAnswer: 0,
+    category: "Ganesh Chaturthi Traditions",
+    difficulty: "hard",
+    timerSeconds: 30,
+  },
+
+  // ─── महाराष्ट्राची संस्कृती (Maharashtra Culture) ──────────────────────────
+  {
+    question: "पुण्याचे ग्रामदैवत आणि मानाचा पहिला गणपती कोणता आहे?",
+    options: ["कसबा गणपती", "तांबडी जोगेश्वरी गणपती", "गुरुजी तालीम गणपती", "दगडूशेठ हलवाई गणपती"],
+    correctAnswer: 0,
+    category: "Maharashtra Culture",
+    difficulty: "easy",
+    timerSeconds: 20,
+  },
+  {
+    question: "मुंबईतील नवसाला पावणारा आणि जगप्रसिद्ध गणपती कोणता?",
+    options: ["लालबागचा राजा", "चिंचपोकळीचा चिंतामणी", "गिरगावचा राजा", "अंधेरीचा राजा"],
+    correctAnswer: 0,
+    category: "Maharashtra Culture",
+    difficulty: "easy",
+    timerSeconds: 15,
+  },
+  {
+    question: "महाराष्ट्रातील आठ स्वयंभू गणपतींच्या मंदिरांच्या समूहाला काय म्हणतात?",
+    options: ["अष्टविनायक", "नवनाथ", "पंचगंगा", "त्रिमूर्ती"],
+    correctAnswer: 0,
+    category: "Maharashtra Culture",
+    difficulty: "easy",
+    timerSeconds: 20,
+  },
+  {
+    question: "अष्टविनायकांपैकी 'मयूरेश्वर' (मोरगाव) हे देवस्थान कोणत्या जिल्ह्यात आहे?",
+    options: ["पुणे", "अहमदनगर", "रायगड", "सातारा"],
+    correctAnswer: 0,
+    category: "Maharashtra Culture",
+    difficulty: "medium",
+    timerSeconds: 25,
+  },
+  {
+    question: "अष्टविनायकांपैकी रायगड जिल्ह्यातील दोन प्रसिद्ध मंदिरे कोणती?",
+    options: ["बल्लाळेश्वर (पाली) आणि वरदविनायक (महड)", "लेण्याद्री आणि ओझर", "सिद्धटेक आणि रांजणगाव", "थेऊर आणि मोरगाव"],
+    correctAnswer: 0,
+    category: "Maharashtra Culture",
+    difficulty: "medium",
+    timerSeconds: 25,
+  },
+  {
+    question: "गणेश विसर्जन मिरवणुकीत वाजवला जाणारा महाराष्ट्राचा पारंपरिक वाद्य प्रकार कोणता?",
+    options: ["ढोल-ताशा पथक", "ड्रम्स", "बँजो", "पखवाज"],
+    correctAnswer: 0,
+    category: "Maharashtra Culture",
+    difficulty: "easy",
+    timerSeconds: 15,
+  },
+  {
+    question: "पुण्यातील अतिशय लोकप्रिय व भव्य श्रीमंत गणपती कोणता?",
+    options: ["श्रीमंत दगडूशेठ हलवाई गणपती", "अखिल मंडई मंडळ", "तुळशीबाग गणपती", "केसरीवाडा गणपती"],
+    correctAnswer: 0,
+    category: "Maharashtra Culture",
+    difficulty: "easy",
+    timerSeconds: 20,
+  },
+
+  // ─── मोदक आणि नैवेद्य (Modak & Festival Food) ─────────────────────────────
+  {
+    question: "महाराष्ट्रात गणपतीच्या पूजेसाठी खास बनवला जाणारा पारंपरिक मोदक कोणता?",
+    options: ["उकडीचा मोदक (तांदळाच्या पिठाचा)", "तळलेला मोदक", "माव्याचा मोदक", "चॉकलेट मोदक"],
+    correctAnswer: 0,
+    category: "Modak & Festival Food",
+    difficulty: "easy",
+    timerSeconds: 20,
+  },
+  {
+    question: "उकडीच्या मोदकाच्या सारणात (आतील मिश्रणात) प्रामुख्याने काय वापरले जाते?",
+    options: ["ओला खवलेला नारळ, गूळ आणि वेलची", "बेसन आणि साखर", "खवा आणि पिठीसाखर", "ड्रायफ्रूट्स आणि मध"],
+    correctAnswer: 0,
+    category: "Modak & Festival Food",
+    difficulty: "easy",
+    timerSeconds: 20,
+  },
+  {
+    question: "गणपती बाप्पाला नैवेद्य दाखवताना किती मोदकांचा विशेष मान असतो?",
+    options: ["२१ मोदक", "११ मोदक", "५ मोदक", "५१ मोदक"],
+    correctAnswer: 0,
+    category: "Modak & Festival Food",
+    difficulty: "easy",
+    timerSeconds: 15,
+  },
+  {
+    question: "उकडीचा मोदक खाताना त्यावर पारंपरिक पद्धतीने काय सोडले जाते?",
+    options: ["साजूक तूप", "मध", "दुधाची साय", "गुलाब पाणी"],
+    correctAnswer: 0,
+    category: "Modak & Festival Food",
+    difficulty: "easy",
+    timerSeconds: 15,
+  },
+  {
+    question: "गणेशोत्सवात गौरीच्या दिवशी जेवणात कोणता गोड पदार्थ आवर्जून बनवला जातो?",
+    options: ["पुरणपोळी", "गुलाबजाम", "जिलबी", "रसगुल्ला"],
+    correctAnswer: 0,
+    category: "Modak & Festival Food",
+    difficulty: "easy",
+    timerSeconds: 20,
+  },
+  {
+    question: "उकडीच्या मोदकाला बाहेरून सुंदर आकार देण्यासाठी काय पाडल्या जातात?",
+    options: ["कळ्या (पाकळ्या)", "चकत्या", "सुरकुत्या", "रेषा"],
+    correctAnswer: 0,
+    category: "Modak & Festival Food",
+    difficulty: "medium",
+    timerSeconds: 20,
+  },
+
+  // ─── पौराणिक व ऐतिहासिक कथा (Ganapati History) ───────────────────────────
+  {
+    question: "महर्षी वेदव्यासांनी महाभारत सांगितले, तेव्हा ते अखंडपणे कोणी लिहून काढले?",
+    options: ["श्री गणेश", "नारद मुनी", "वाल्मिकी ऋषी", "शुकदेव"],
+    correctAnswer: 0,
+    category: "Ganapati History",
+    difficulty: "easy",
+    timerSeconds: 20,
+  },
+  {
+    question: "श्री गणेशाचे प्रसिद्ध स्तोत्र 'गणपती अथर्वशीर्ष' कोणत्या प्राचीन वेदात समाविष्ट आहे?",
+    options: ["अथर्ववेद", "ऋग्वेद", "सामवेद", "यजुर्वेद"],
+    correctAnswer: 0,
+    category: "Ganapati History",
+    difficulty: "medium",
+    timerSeconds: 25,
+  },
+  {
+    question: "लोकमान्य टिळकांनी सार्वजनिक गणेशोत्सव कोणत्या वर्षी सुरू केला?",
+    options: ["१८९३", "१८५७", "१९०५", "१९२०"],
+    correctAnswer: 0,
+    category: "Ganapati History",
+    difficulty: "medium",
+    timerSeconds: 25,
+  },
+  {
+    question: "सार्वजनिक गणेशोत्सव सुरू करण्यामागे लोकमान्य टिळकांचा मुख्य उद्देश काय होता?",
+    options: ["पारतंत्र्यात लोकांना एकत्र आणणे व राष्ट्रजागृती करणे", "केवळ करमणूक करणे", "मंदिराचा निधी वाढवणे", "परदेशी लोकांचे स्वागत करणे"],
+    correctAnswer: 0,
+    category: "Ganapati History",
+    difficulty: "easy",
+    timerSeconds: 20,
+  },
+  {
+    question: "श्री गणेशाला दुर्वा अर्पण करण्यामागे कोणत्या राक्षसाचा दाह शांत करण्याची कथा आहे?",
+    options: ["अनलसूर", "महिषासूर", "तारकासूर", "रावण"],
+    correctAnswer: 0,
+    category: "Ganapati History",
+    difficulty: "hard",
+    timerSeconds: 30,
+  },
+  {
+    question: "कार्तिकेय आणि गणपती यांच्यात पृथ्वी प्रदक्षिणेची पैज लागली तेव्हा गणपतींनी काय केले?",
+    options: ["आई-वडिलांना (शिव-पार्वती) प्रदक्षिणा घातली", "उंदरावरून वेगाने धावले", "विमानात बसून गेले", "पैज नाकारली"],
+    correctAnswer: 0,
+    category: "Ganapati History",
+    difficulty: "easy",
+    timerSeconds: 20,
+  },
+
+  // ─── उत्सव ज्ञान (Festival Knowledge) ─────────────────────────────────────
+  {
+    question: "गणपती बाप्पाच्या पूजेमध्ये किती दुर्वांची जुडी वाहण्याची प्रथा आहे?",
+    options: ["२१ दुर्वा", "११ दुर्वा", "५१ दुर्वा", "१०८ दुर्वा"],
+    correctAnswer: 0,
+    category: "Festival Knowledge",
+    difficulty: "easy",
+    timerSeconds: 20,
+  },
+  {
+    question: "गणपतीला वाहण्यात येणारे सर्वात आवडते लाल रंगाचे फूल कोणते?",
+    options: ["लाल जास्वंद", "लाल गुलाब", "कमळ", "पारिजातक"],
+    correctAnswer: 0,
+    category: "Festival Knowledge",
+    difficulty: "easy",
+    timerSeconds: 15,
+  },
+  {
+    question: "श्री गणेशाची आरती 'सुखकर्ता दुखहर्ता' ही अजरामर रचना कोणाची आहे?",
+    options: ["समर्थ रामदास स्वामी", "संत ज्ञानेश्वर", "संत तुकाराम", "संत एकनाथ"],
+    correctAnswer: 0,
+    category: "Festival Knowledge",
+    difficulty: "medium",
+    timerSeconds: 25,
+  },
+  {
+    question: "गणपतीच्या मोठ्या पोटाचे (लंबोदर) आध्यात्मिक महत्त्व काय दर्शवते?",
+    options: ["सर्व जग आपल्या उदरात सामावून घेण्याची क्षमता", "जास्त मोदक खाणे", "फक्त संपत्तीचे प्रदर्शन", "शारीरिक ताकद"],
+    correctAnswer: 0,
+    category: "Festival Knowledge",
+    difficulty: "medium",
+    timerSeconds: 25,
+  },
+  {
+    question: "कोणतेही शुभ कार्य सुरू करताना श्री गणेशाचे स्मरण सर्वप्रथम का केले जाते?",
+    options: ["ते विघ्नहर्ता असल्याने कार्यातील सर्व अडथळे दूर व्हावेत म्हणून", "ते सर्वात ज्येष्ठ देव आहेत म्हणून", "परंपरेनुसार केवळ औपचारिकता म्हणून", "ते रागावू नयेत म्हणून"],
+    correctAnswer: 0,
+    category: "Festival Knowledge",
+    difficulty: "easy",
+    timerSeconds: 20,
+  },
+  {
+    question: "गणपतीच्या मोठ्या कानांचे (शूर्पकर्ण) प्रतीक काय शिकवते?",
+    options: ["चांगल्या गोष्टी जास्त ऐकाव्यात आणि वाईट गोष्टी गाळून टाकाव्यात", "मोठा आवाज ऐकण्यासाठी", "केवळ हत्तीचे रूप म्हणून", "हवेसाठी"],
+    correctAnswer: 0,
+    category: "Festival Knowledge",
+    difficulty: "medium",
+    timerSeconds: 25,
+  },
+];
+
+async function seed() {
+  console.log('🌱 BappaVerse Seed Script starting...\n');
+
+  if (!MONGODB_URI) {
+    console.error('❌ ERROR: MONGODB_URI is not set in .env');
+    process.exit(1);
+  }
+
+  await mongoose.connect(MONGODB_URI);
+  console.log('✅ Connected to MongoDB\n');
+
+  // ─── Seed Admin User ────────────────────────────────────────────────────
+  const existingAdmin = await User.findOne({ email: ADMIN_EMAIL.toLowerCase() });
+  if (existingAdmin) {
+    console.log(`ℹ️  Admin user already exists: ${ADMIN_EMAIL}`);
+  } else {
+    const passwordHash = await bcrypt.hash(ADMIN_PASSWORD, 12);
+    await User.create({
+      name: 'BappaVerse Host',
+      username: 'bappahost',
+      email: ADMIN_EMAIL.toLowerCase(),
+      passwordHash,
+      role: 'host',
+    });
+    console.log(`✅ Admin user created: ${ADMIN_EMAIL}`);
+    console.log(`   Password: ${ADMIN_PASSWORD}`);
+    console.log(`   ⚠️  Change this password after first login!\n`);
+  }
+
+  // ─── Seed Verified Aartis ────────────────────────────────────────────────
+  await Aarti.deleteMany({});
+  await Aarti.insertMany(VERIFIED_AARTIS);
+  console.log(`✅ Seeded ${VERIFIED_AARTIS.length} Verified Marathi Aartis into MongoDB:`);
+  VERIFIED_AARTIS.forEach((a) => console.log(`   - ${a.title} (${a.deity} - ${a.allLines.length} ओळी)`));
+  console.log('');
+
+  // ─── Seed Marathi Quiz Questions ─────────────────────────────────────────
+  const adminUser = await User.findOne({ email: ADMIN_EMAIL.toLowerCase() });
+  
+  // Clean existing questions so we have fresh Marathi questions
+  await QuizQuestion.deleteMany({});
+  console.log('🗑️ Purged old quiz questions.');
+
+  // Shuffle options for every question so correctAnswer is randomly distributed among 0, 1, 2, 3 (अ, ब, क, ड)
+  const randomizedQuestions = QUESTIONS.map((q) => {
+    const correctOptionText = q.options[q.correctAnswer];
+    const shuffledOptions = [...q.options];
+    for (let i = shuffledOptions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
+    }
+    const newCorrectAnswer = shuffledOptions.indexOf(correctOptionText);
+    return {
+      ...q,
+      options: shuffledOptions,
+      correctAnswer: newCorrectAnswer,
+      createdBy: adminUser?._id,
+    };
+  });
+
+  await QuizQuestion.insertMany(randomizedQuestions, { ordered: false });
+  console.log(`✅ Seeded ${randomizedQuestions.length} Marathi quiz questions with randomized answer positions!`);
+
+  console.log('\n🎉 Seeding complete! BappaVerse is ready.');
+  console.log('\n📋 Next steps:');
+  console.log('   1. Start the server: npm run dev');
+  console.log('   2. Start the frontend: cd ../frontend && npm run dev');
+  console.log(`   3. Log in as Host: ${ADMIN_EMAIL}`);
+  console.log('   4. Create a Housie game from the Admin dashboard');
+
+  await mongoose.disconnect();
+  process.exit(0);
+}
+
+seed().catch((err) => {
+  console.error('❌ Seed failed:', err);
+  process.exit(1);
+});
