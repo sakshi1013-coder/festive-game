@@ -645,13 +645,30 @@ export default function UnifiedQuizManagerPage() {
             <div className="space-y-6">
               {/* Header Action Bar */}
               <div className="card bg-surface border-2 border-primary/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="badge-saffron text-xs font-black">Room Code: {generatedQuiz.roomId}</span>
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="badge-saffron text-sm font-black tracking-wider px-3 py-1 font-mono">
+                      Room Code: {generatedQuiz.roomId}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(generatedQuiz.roomId);
+                        alert(`Room Code ${generatedQuiz.roomId} copied to clipboard!`);
+                      }}
+                      className="text-xs font-bold text-primary hover:underline"
+                    >
+                      (Copy Code)
+                    </button>
                     <span className="badge-gold text-xs font-bold">{questions.length} Questions</span>
                     <span className="badge-success text-xs font-bold">Ready</span>
                   </div>
-                  <h2 className="text-2xl font-black text-bappa-text mt-1.5">{generatedQuiz.title}</h2>
+                  <h2 className="text-2xl font-black text-bappa-text mt-1.5">
+                    {generatedQuiz.title
+                      ?.replace(/^Aarti Knowledge Quiz\s*\([^)]*\)/i, 'Ganapati Aarti Quiz')
+                      .replace(/\([^)]*\)/g, '')
+                      .trim() || 'Ganapati Aarti Quiz'}
+                  </h2>
                   <div className="text-xs text-bappa-muted mt-1">
                     Source Aartis: {generatedQuiz.sourceAartis.join(' • ')}
                   </div>

@@ -94,25 +94,42 @@ export default function HousieGamePage() {
   // Load initial game state
   useEffect(() => {
     if (!gameId) return;
-    Promise.all([
-      housieApi.getGame(gameId),
-      housieApi.getMyTicket(gameId),
-    ]).then(([gameRes, ticketRes]) => {
-      const g = gameRes.data.game;
-      const t = ticketRes.data.ticket;
-      setGame(g);
-      setCalledNumbers(g.calledNumbers || []);
-      if (g.calledNumbers?.length > 0) {
-        setLastNumber(g.calledNumbers[g.calledNumbers.length - 1]);
-      }
-      setTicket(t);
-      if (t?.markedNumbers?.length) {
-        setMarkedNumbers(new Set(t.markedNumbers));
-      }
-      setPlayerCount(gameRes.data.playerCount);
-    }).catch((err) => {
-      setError(err.response?.data?.error || 'Failed to load game');
-    }).finally(() => setLoading(false));
+    housieApi
+      .getGame(gameId)
+      .then(async (gameRes) => {
+        const g = gameRes.data.game;
+        setGame(g);
+        setCalledNumbers(g.calledNumbers || []);
+        if (g.calledNumbers?.length > 0) {
+          setLastNumber(g.calledNumbers[g.calledNumbers.length - 1]);
+        }
+        setPlayerCount(gameRes.data.playerCount || 0);
+
+        try {
+          const ticketRes = await housieApi.getMyTicket(gameId);
+          if (ticketRes.data?.ticket) {
+            setTicket(ticketRes.data.ticket);
+            if (ticketRes.data.ticket.markedNumbers?.length) {
+              setMarkedNumbers(new Set(ticketRes.data.ticket.markedNumbers));
+            }
+          }
+        } catch {
+          if (g.roomCode) {
+            try {
+              const joinRes = await housieApi.join(g.roomCode);
+              if (joinRes.data?.ticket) {
+                setTicket(joinRes.data.ticket);
+              }
+            } catch {
+              // Handled by socket fallback
+            }
+          }
+        }
+      })
+      .catch((err) => {
+        setError(err.response?.data?.error || 'Failed to load game');
+      })
+      .finally(() => setLoading(false));
   }, [gameId]);
 
   // Socket connection
@@ -139,31 +156,37 @@ export default function HousieGamePage() {
     socket.on('disconnect', () => setConnected(false));
 
     socket.on('game-state', (data: any) => {
-      setGame(data.game);
-      setCalledNumbers(data.calledNumbers || []);
+      if (data.game) setGame(data.game);
+      if (data.ticket) {
+        setTicket(data.ticket);
+        if (data.ticket.markedNumbers?.length) {
+          setMarkedNumbers(new Set(data.ticket.markedNumbers));
+        }
+      }
+      setCalledNumbers(data.calledNumbers || data.game?.calledNumbers || []);
       setPlayerCount(data.playerCount || 0);
       if (data.calledNumbers?.length) {
         setLastNumber(data.calledNumbers[data.calledNumbers.length - 1]);
       }
     });
 
-    socket.on('number-called', (data: any) => {
+    const handleNumberCalled = (data: any) => {
       setCalledNumbers(data.calledNumbers);
       setLastNumber(data.number);
       setNewNumberAnim(true);
       setTimeout(() => setNewNumberAnim(false), 600);
-
-      // Play chime when new number is called
       playSound('mark', soundEnabled);
 
-      // Update progress
       const myProgress = data.playerProgress?.find(
-        (p: any) => p.playerId === user.id
+        (p: any) => p.playerId === (user as any)?.id || p.playerId === (user as any)?._id
       );
       if (myProgress) {
-        setCompletedPatterns(myProgress.progress.completedPatterns || []);
+        setCompletedPatterns(myProgress.progress?.completedPatterns || []);
       }
-    });
+    };
+
+    socket.on('number-called', handleNumberCalled);
+    socket.on('housie:number_called', handleNumberCalled);
 
     socket.on('ticket-marked', (data: any) => {
       if (Array.isArray(data.markedNumbers)) {
@@ -191,32 +214,34 @@ export default function HousieGamePage() {
 
     socket.on('game-ended', (data: any) => {
       setGame(data.game);
+      showFeedback('Game has ended! Thank you for playing.', 'info');
     });
 
     socket.on('winner-approved', (data: any) => {
-      const pattern = data.pattern;
-      if (data.playerId === user.id) {
-        setClaimStatus((prev) => ({ ...prev, [pattern]: 'approved' }));
-        playSound('win', soundEnabled);
-        showFeedback(`Congratulations! Your ${PATTERN_LABELS[pattern] || pattern} claim was APPROVED!`, 'success');
-      }
-      setWinners((prev) => [...prev, { name: data.playerName || 'A player', pattern }]);
+      setWinners((prev) => [...prev, { name: data.playerName || 'A player', pattern: data.pattern }]);
+      setClaimStatus((prev) => ({ ...prev, [data.pattern]: 'approved' }));
+      playSound('win', soundEnabled);
+    });
+
+    socket.on('housie:claim_approved', (data: any) => {
+      setWinners((prev) => [...prev, { name: data.playerName || 'A player', pattern: data.pattern }]);
+      setClaimStatus((prev) => ({ ...prev, [data.pattern]: 'approved' }));
+      playSound('win', soundEnabled);
     });
 
     socket.on('winner-rejected', (data: any) => {
-      if (data.playerId === user.id) {
-        setClaimStatus((prev) => ({ ...prev, [data.pattern]: 'rejected' }));
-        showFeedback(`Claim for ${PATTERN_LABELS[data.pattern] || data.pattern} was not approved: ${data.note || 'Invalid claim'}`, 'warn');
-      }
+      setClaimStatus((prev) => ({ ...prev, [data.pattern]: 'rejected' }));
     });
 
     socket.on('player-joined', (data: any) => setPlayerCount(data.playerCount));
     socket.on('player-left', (data: any) => setPlayerCount(data.playerCount || playerCount - 1));
 
     return () => {
-      socket.emit('leave-game', { gameId });
+      socket.off('connect');
+      socket.off('disconnect');
       socket.off('game-state');
-      socket.off('number-called');
+      socket.off('number-called', handleNumberCalled);
+      socket.off('housie:number_called', handleNumberCalled);
       socket.off('ticket-marked');
       socket.off('mark-error');
       socket.off('game-started');
@@ -224,6 +249,7 @@ export default function HousieGamePage() {
       socket.off('game-resumed');
       socket.off('game-ended');
       socket.off('winner-approved');
+      socket.off('housie:claim_approved');
       socket.off('winner-rejected');
       socket.off('player-joined');
       socket.off('player-left');
@@ -248,11 +274,26 @@ export default function HousieGamePage() {
     return () => clearInterval(interval);
   }, [gameId, calledNumbers.length]);
 
+  // Claim win
   const claimWin = useCallback((pattern: string) => {
-    if (!socketRef.current || claimStatus[pattern]) return;
+    if (!gameId || claimStatus[pattern] === 'pending') return;
+
     setClaimStatus((prev) => ({ ...prev, [pattern]: 'pending' }));
-    socketRef.current.emit('claim-win', { gameId, pattern });
-  }, [gameId, claimStatus]);
+    if (socketRef.current) {
+      socketRef.current.emit('claim-win', { gameId, pattern });
+      socketRef.current.emit('housie:claim', { roomId: game?.roomCode, gameId, ticketId: ticket?._id, claimType: pattern, pattern });
+    }
+
+    // Fallback REST call
+    housieApi.claimWin(gameId, pattern).then((res) => {
+      if (res.data.claim?.status === 'approved') {
+        setClaimStatus((prev) => ({ ...prev, [pattern]: 'approved' }));
+      }
+    }).catch((err) => {
+      setClaimStatus((prev) => ({ ...prev, [pattern]: 'idle' }));
+      showFeedback(err.response?.data?.error || 'Claim was not accepted.', 'warn');
+    });
+  }, [gameId, claimStatus, game?.roomCode, ticket?._id, showFeedback]);
 
   if (loading) {
     return (
@@ -280,13 +321,13 @@ export default function HousieGamePage() {
   }
 
   const calledSet = new Set(calledNumbers);
-  const allTicketNumbers = ticket?.ticketGrid.flat().filter((n): n is number => n !== null) || [];
+  const allTicketNumbers = ticket?.ticketGrid ? ticket.ticketGrid.flat().filter((n): n is number => n !== null) : [];
   const markedCount = allTicketNumbers.filter((n) => markedNumbers.has(n)).length;
   const progressPct = allTicketNumbers.length > 0 ? Math.round((markedCount / allTicketNumbers.length) * 100) : 0;
 
   // Player clicks a number on screen or on ticket
   const handleNumberClick = useCallback((num: number) => {
-    if (!ticket) return;
+    if (!ticket?.ticketGrid) return;
     const allTicketNums = ticket.ticketGrid.flat().filter((n): n is number => n !== null);
     const isOnTicket = allTicketNums.includes(num);
     const isCalled = calledNumbers.includes(num);
@@ -326,7 +367,7 @@ export default function HousieGamePage() {
 
   // Quick helper to mark all numbers called so far on player's ticket
   const handleMarkAllCalled = useCallback(() => {
-    if (!ticket) return;
+    if (!ticket?.ticketGrid) return;
     const allTicketNums = ticket.ticketGrid.flat().filter((n): n is number => n !== null);
     const unMarkedCalled = allTicketNums.filter((n) => calledNumbers.includes(n) && !markedNumbers.has(n));
     if (unMarkedCalled.length === 0) {

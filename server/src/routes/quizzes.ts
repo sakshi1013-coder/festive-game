@@ -90,7 +90,7 @@ router.post('/generate', hostMiddleware, async (req: Request, res: Response) => 
     const generatedRawQuestions = generateAartiQuiz(aartis, generatorOptions, onProgress);
 
     // Create Quiz in MongoDB
-    const quizTitle = title || `Aarti Knowledge Quiz (${sourceAartis.join(', ')})`;
+    const quizTitle = title?.trim() || 'Ganapati Aarti Quiz';
     const quiz = await Quiz.create({
       roomId: finalRoomId,
       title: quizTitle,
@@ -133,6 +133,15 @@ router.post('/generate', hostMiddleware, async (req: Request, res: Response) => 
   }
 });
 
+// Helper to look up quiz by either Mongo ObjectId or 6-character roomCode
+async function findQuizByIdOrRoom(identifier: string) {
+  if (identifier && identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier)) {
+    const q = await Quiz.findById(identifier).populate('createdBy', 'name username');
+    if (q) return q;
+  }
+  return await Quiz.findOne({ roomId: identifier.toUpperCase() }).populate('createdBy', 'name username');
+}
+
 // ─── GET /api/quizzes/:quizId ─────────────────────────────────────────────────
 // Fetch quiz details and questions
 router.get('/:quizId', authMiddleware, async (req: Request, res: Response) => {
@@ -141,14 +150,7 @@ router.get('/:quizId', authMiddleware, async (req: Request, res: Response) => {
     const user = (req as any).user;
     const isHost = user.role === 'host' || user.role === 'admin';
 
-    let quiz = null;
-    // Support lookup by MongoDB ID or roomCode
-    if (quizId.length === 24 && /^[0-9a-fA-F]{24}$/.test(quizId)) {
-      quiz = await Quiz.findById(quizId).populate('createdBy', 'name username');
-    } else {
-      quiz = await Quiz.findOne({ roomId: quizId.toUpperCase() }).populate('createdBy', 'name username');
-    }
-
+    const quiz = await findQuizByIdOrRoom(quizId);
     if (!quiz) {
       return res.status(404).json({ error: 'Quiz not found.' });
     }
@@ -184,7 +186,7 @@ router.get('/:quizId', authMiddleware, async (req: Request, res: Response) => {
 router.post('/:quizId/start', hostMiddleware, async (req: Request, res: Response) => {
   try {
     const { quizId } = req.params;
-    const quiz = await Quiz.findById(quizId);
+    const quiz = await findQuizByIdOrRoom(quizId);
     if (!quiz) return res.status(404).json({ error: 'Quiz not found.' });
 
     quiz.status = 'active';
@@ -195,29 +197,52 @@ router.post('/:quizId/start', hostMiddleware, async (req: Request, res: Response
     const firstQuestion = await QuizQuestion.findOne({ quizId: quiz._id }).sort({ createdAt: 1 });
 
     const io = req.app.get('io');
-    io?.to(`quiz:${quiz.roomId}`)?.emit('quiz:started', {
+    const startPayload = {
       quizId: quiz._id,
       roomId: quiz.roomId,
       title: quiz.title,
       totalQuestions: quiz.totalQuestions,
-    });
+    };
+    io?.to(`quiz:${quiz._id}`)?.emit('quiz:started', startPayload);
+    io?.to(`quiz:${quiz.roomId}`)?.emit('quiz:started', startPayload);
 
+    let sanitizedFirstQ = null;
     if (firstQuestion) {
-      // Send question to players (sanitized)
       const sanitized = firstQuestion.toObject();
       delete sanitized.correctAnswer;
       delete sanitized.correctOrder;
       delete sanitized.incorrectWord;
       delete sanitized.correctWord;
+      sanitizedFirstQ = sanitized;
 
+      const questionPayload = {
+        quizId: quiz._id,
+        questionId: firstQuestion._id,
+        questionNumber: 1,
+        totalQuestions: quiz.totalQuestions,
+        questionIndex: 0,
+        question: sanitized,
+        timeLimit: firstQuestion.timeLimit || 25,
+        startedAt: Date.now(),
+      };
+
+      io?.to(`quiz:${quiz._id}`)?.emit('quiz:question', questionPayload);
+      io?.to(`quiz:${quiz.roomId}`)?.emit('quiz:question', questionPayload);
+      io?.to(`quiz:${quiz._id}`)?.emit('quiz:next_question', {
+        questionIndex: 0,
+        totalQuestions: quiz.totalQuestions,
+        question: sanitized,
+        fullQuestionForHost: firstQuestion,
+      });
       io?.to(`quiz:${quiz.roomId}`)?.emit('quiz:next_question', {
         questionIndex: 0,
         totalQuestions: quiz.totalQuestions,
         question: sanitized,
+        fullQuestionForHost: firstQuestion,
       });
     }
 
-    return res.json({ quiz, currentQuestion: firstQuestion });
+    return res.json({ quiz, currentQuestion: firstQuestion, sanitizedQuestion: sanitizedFirstQ });
   } catch (err) {
     console.error('Start quiz error:', err);
     return res.status(500).json({ error: 'Error starting quiz.' });

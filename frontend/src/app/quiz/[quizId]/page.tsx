@@ -52,6 +52,9 @@ export default function PlayerQuizPage() {
   const [currentQuestion, setCurrentQuestion] = useState<DynamicQuizQuestion | null>(null);
   const [submittedAnswer, setSubmittedAnswer] = useState<any>(null);
   const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [submitConfirmed, setSubmitConfirmed] = useState<boolean>(false);
+  const [submitError, setSubmitError] = useState<string>('');
   const [answerResult, setAnswerResult] = useState<{
     correct: boolean;
     points: number;
@@ -119,7 +122,9 @@ export default function PlayerQuizPage() {
       }
       if (data.currentQuestion) {
         setCurrentQuestion(data.currentQuestion);
-        setTimeLeft(data.currentQuestion.timeLimit || 25);
+        const limit = data.timeLimit || data.currentQuestion.timeLimit || 25;
+        const elapsed = data.startedAt ? Math.floor((Date.now() - data.startedAt) / 1000) : 0;
+        setTimeLeft(Math.max(1, limit - elapsed));
       }
     });
 
@@ -129,21 +134,45 @@ export default function PlayerQuizPage() {
       startTimeRef.current = Date.now();
     });
 
-    socket.on('quiz:next_question', (data: { questionIndex: number; totalQuestions: number; question: any }) => {
-      setCurrentIndex(data.questionIndex);
-      setCurrentQuestion(data.question);
+    const handleQuestionUpdate = (data: any) => {
+      if (data.questionIndex !== undefined) {
+        setCurrentIndex(data.questionIndex);
+      }
+      if (data.question) {
+        setCurrentQuestion(data.question);
+      }
       setSubmittedAnswer(null);
       setHasSubmitted(false);
+      setSubmitting(false);
+      setSubmitConfirmed(false);
+      setSubmitError('');
       setAnswerResult(null);
       setIsRevealed(false);
 
-      const limit = data.question?.timeLimit || 25;
-      setTimeLeft(limit);
+      const limit = data.timeLimit || data.question?.timeLimit || 25;
+      const elapsed = data.startedAt ? Math.floor((Date.now() - data.startedAt) / 1000) : 0;
+      setTimeLeft(Math.max(1, limit - elapsed));
       setTimerActive(true);
       startTimeRef.current = Date.now();
+    };
+
+    socket.on('quiz:question', handleQuestionUpdate);
+    socket.on('quiz:next_question', handleQuestionUpdate);
+
+    socket.on('player:answer_received', () => {
+      setSubmitting(false);
+      setSubmitConfirmed(true);
+      setSubmitError('');
+    });
+
+    socket.on('player:submit_error', (data: any) => {
+      setSubmitting(false);
+      setSubmitError(data?.message || 'Submission error. Please retry.');
     });
 
     socket.on('player:answer_result', (data: any) => {
+      setSubmitting(false);
+      setSubmitConfirmed(true);
       setAnswerResult(data);
       if (data.correct) {
         setTotalEarnedPoints((prev) => prev + (data.points || 10));
@@ -174,8 +203,11 @@ export default function PlayerQuizPage() {
     return () => {
       socket.off('quiz:state');
       socket.off('quiz:started');
-      socket.off('quiz:next_question');
-      socket.off('quiz:player_answered');
+      socket.off('quiz:question', handleQuestionUpdate);
+      socket.off('quiz:next_question', handleQuestionUpdate);
+      socket.off('player:answer_received');
+      socket.off('player:submit_error');
+      socket.off('player:answer_result');
       socket.off('quiz:question_ended');
       socket.off('quiz:completed');
     };
@@ -213,6 +245,8 @@ export default function PlayerQuizPage() {
     if (hasSubmitted || !currentQuestion || !quiz) return;
 
     setHasSubmitted(true);
+    setSubmitting(true);
+    setSubmitError('');
     setSubmittedAnswer(answer);
     const timeTaken = Math.max(1, Math.round((Date.now() - startTimeRef.current) / 1000));
 
@@ -220,12 +254,24 @@ export default function PlayerQuizPage() {
     if (token) {
       const socket = getSocket(token);
       socket.emit('player:submit_answer', {
+        roomId: quiz.roomId,
         quizId: quiz._id,
         questionId: currentQuestion._id,
         answer,
         timeTaken,
       });
     }
+
+    // Safety timeout: if server acknowledgement doesn't arrive within 6 seconds, provide Retry
+    const timeout = setTimeout(() => {
+      setSubmitting((s) => {
+        if (s) {
+          setSubmitError('Server acknowledgement taking longer than expected. You can retry.');
+          return false;
+        }
+        return s;
+      });
+    }, 6000);
 
     // Also call REST fallback
     quizzesApi
@@ -235,6 +281,9 @@ export default function PlayerQuizPage() {
         timeTaken,
       })
       .then((res: any) => {
+        clearTimeout(timeout);
+        setSubmitting(false);
+        setSubmitConfirmed(true);
         if (res.data) {
           setAnswerResult(res.data);
           if (res.data.isCorrect) {
@@ -387,7 +436,7 @@ export default function PlayerQuizPage() {
               Question {currentIndex + 1} of {quiz.totalQuestions}
             </div>
             <div className="text-xs font-bold text-bappa-text truncate max-w-[150px] sm:max-w-xs">
-              {currentQuestion?.sourceAarti || quiz.title}
+              Ganapati Quiz
             </div>
           </div>
         </div>
@@ -513,6 +562,37 @@ export default function PlayerQuizPage() {
               />
             )}
           </div>
+
+          {/* Active Submission Confirmation Banner */}
+          {hasSubmitted && !isRevealed && (
+            <div className="p-4 rounded-2xl bg-amber-50/90 border border-amber-300 text-amber-950 flex flex-col sm:flex-row items-center justify-between gap-3 animate-fade-in">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                <div>
+                  <div className="text-xs font-black uppercase tracking-wider text-emerald-800">
+                    {submitConfirmed ? 'Answer Submitted' : submitting ? 'Submitting Answer...' : 'Answer Recorded'}
+                  </div>
+                  <div className="text-xs text-bappa-muted">
+                    {submitError || 'Answer locked in! Waiting for round to end & results to reveal...'}
+                  </div>
+                </div>
+              </div>
+              {submitError ? (
+                <button
+                  type="button"
+                  onClick={() => handleAnswerSubmit(submittedAnswer)}
+                  className="px-3.5 py-1.5 bg-error text-white text-xs font-black rounded-xl hover:opacity-90 transition-all flex items-center gap-1.5 shadow-sm"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" /> Retry
+                </button>
+              ) : (
+                <div className="flex items-center gap-1.5 text-xs text-primary font-bold animate-pulse">
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <span>Waiting for host</span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* ANSWER REVEAL & AUTHENTIC AARTI REFERENCE BANNER */}
           <AnimatePresence>

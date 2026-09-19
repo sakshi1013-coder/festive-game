@@ -22,6 +22,7 @@ import {
   LogOut,
   ShieldCheck,
   Flame,
+  Link2,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { getSocket } from '@/lib/socket';
@@ -44,6 +45,7 @@ export default function HostQuizControlPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
   const [revealed, setRevealed] = useState(false);
 
   // Live timer state
@@ -51,7 +53,8 @@ export default function HostQuizControlPage() {
   const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Player responses live counter
+  // Players tracking
+  const [joinedPlayers, setJoinedPlayers] = useState<Set<string>>(new Set());
   const [answeredPlayers, setAnsweredPlayers] = useState<
     Array<{ userId: string; name: string; correct?: boolean }>
   >([]);
@@ -93,6 +96,12 @@ export default function HostQuizControlPage() {
       }
     });
 
+    socket.on('quiz:player_joined', (data: { userId: string; name: string }) => {
+      if (data?.name) {
+        setJoinedPlayers((prev) => new Set([...prev, data.name]));
+      }
+    });
+
     socket.on('quiz:player_answered', (data: { userId: string; name: string; correct: boolean }) => {
       setAnsweredPlayers((prev) => {
         if (prev.some((p) => p.userId === data.userId)) return prev;
@@ -100,14 +109,17 @@ export default function HostQuizControlPage() {
       });
     });
 
-    socket.on('quiz:next_question', (data: { questionIndex: number; totalQuestions: number; question: any; fullQuestionForHost?: any }) => {
+    const handleNextQ = (data: { questionIndex: number; totalQuestions: number; question: any; fullQuestionForHost?: any }) => {
       setCurrentIndex(data.questionIndex);
       setRevealed(false);
       setAnsweredPlayers([]);
       const limit = data.fullQuestionForHost?.timeLimit || data.question?.timeLimit || 25;
       setTimeLeft(limit);
       setIsTimerRunning(true);
-    });
+    };
+
+    socket.on('quiz:question', handleNextQ);
+    socket.on('quiz:next_question', handleNextQ);
 
     socket.on('quiz:question_ended', () => {
       setRevealed(true);
@@ -121,8 +133,10 @@ export default function HostQuizControlPage() {
 
     return () => {
       socket.off('quiz:state');
+      socket.off('quiz:player_joined');
       socket.off('quiz:player_answered');
-      socket.off('quiz:next_question');
+      socket.off('quiz:question', handleNextQ);
+      socket.off('quiz:next_question', handleNextQ);
       socket.off('quiz:question_ended');
       socket.off('quiz:completed');
     };
@@ -232,9 +246,57 @@ export default function HostQuizControlPage() {
   }
 
   const isCompleted = quiz.status === 'completed';
+  const cleanTitle =
+    quiz.title
+      ?.replace(/^Aarti Knowledge Quiz\s*\([^)]*\)/i, 'Ganapati Aarti Quiz')
+      .replace(/\([^)]*\)/g, '')
+      .trim() || 'Ganapati Aarti Quiz';
+
+  const totalJoinedCount = Math.max(joinedPlayers.size, answeredPlayers.length, 1);
+  const correctCount = answeredPlayers.filter((p) => p.correct).length;
+  const incorrectCount = answeredPlayers.filter((p) => p.correct === false).length;
+  const waitingCount = Math.max(0, totalJoinedCount - answeredPlayers.length);
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-20 page-transition">
+      {/* ─── PROMINENT GAME ROOM CODE BANNER (Requirement 1) ─── */}
+      <div className="card border-2 border-primary/40 bg-gradient-to-br from-amber-500/10 via-surface to-primary-light/30 p-6 sm:p-8 shadow-card-lg text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="space-y-1.5">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary text-white rounded-full text-xs font-black tracking-widest uppercase">
+            <Sparkles className="w-3.5 h-3.5" /> Your Game Room
+          </span>
+          <div className="text-4xl sm:text-6xl font-black font-mono tracking-widest text-primary drop-shadow-sm">
+            {quiz.roomId}
+          </div>
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-xs font-bold text-bappa-muted pt-1">
+            <span>Players Joined: <strong className="text-primary text-sm">{totalJoinedCount}</strong></span>
+            <span>•</span>
+            <span>Status: <strong className="text-emerald-700 text-sm">{isCompleted ? 'Completed' : quiz.status === 'active' ? 'LIVE' : 'Waiting for Players'}</strong></span>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(quiz.roomId);
+              setCodeCopied(true);
+              setTimeout(() => setCodeCopied(false), 2000);
+            }}
+            className="btn-primary py-3.5 px-6 text-sm font-black flex items-center gap-2 shadow-saffron hover:scale-[1.02] active:scale-[0.98]"
+          >
+            {codeCopied ? <Check className="w-4 h-4 text-white" /> : <Copy className="w-4 h-4" />}
+            <span>{codeCopied ? 'Room Code Copied!' : 'Copy Room Code'}</span>
+          </button>
+          <button
+            onClick={copyRoomLink}
+            className="btn-outline py-3.5 px-6 text-sm font-black flex items-center gap-2 border-2 border-primary text-primary hover:bg-primary-light hover:scale-[1.02] active:scale-[0.98]"
+          >
+            {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Link2 className="w-4 h-4" />}
+            <span>{copied ? 'Player Link Copied!' : 'Copy Player Link'}</span>
+          </button>
+        </div>
+      </div>
+
       {/* ─── TOP STATUS BAR ──────────────────────────────────────────────────── */}
       <div className="bg-gradient-to-r from-primary via-saffron to-maroon text-white rounded-3xl p-6 shadow-card-lg relative overflow-hidden">
         <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10 flex items-center justify-end pr-8 pointer-events-none">
@@ -253,7 +315,7 @@ export default function HostQuizControlPage() {
               </span>
             </div>
             <h1 className="text-2xl md:text-3xl font-black tracking-tight drop-shadow-sm">
-              {quiz.title}
+              {cleanTitle}
             </h1>
             <div className="flex flex-wrap items-center gap-2 text-xs text-white/90">
               <span className="font-semibold">Source Aartis:</span>
@@ -263,25 +325,6 @@ export default function HostQuizControlPage() {
                 </span>
               ))}
             </div>
-          </div>
-
-          {/* Room Code + Share */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white/10 backdrop-blur-md p-3 rounded-2xl border border-white/20">
-            <div>
-              <div className="text-[11px] font-bold text-white/80 uppercase tracking-wider">
-                Room Code
-              </div>
-              <div className="text-3xl font-black tracking-widest text-gold drop-shadow-md">
-                {quiz.roomId}
-              </div>
-            </div>
-            <button
-              onClick={copyRoomLink}
-              className="px-4 py-2 bg-white text-primary hover:bg-gold-light font-black text-xs rounded-xl shadow transition-transform active:scale-95 flex items-center justify-center gap-1.5"
-            >
-              {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-              {copied ? 'Copied!' : 'Copy Player Link'}
-            </button>
           </div>
         </div>
       </div>
@@ -500,6 +543,28 @@ export default function HostQuizControlPage() {
               <span className="text-xs bg-primary-light text-primary font-black px-2.5 py-0.5 rounded-full">
                 {answeredPlayers.length} answered
               </span>
+            </div>
+
+            {/* Real-Time Breakdown Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-center">
+              <div className="p-2.5 bg-surface-secondary rounded-xl border border-bappa-border">
+                <div className="text-[10px] font-bold text-bappa-muted uppercase">Answered</div>
+                <div className="text-base font-black text-bappa-text">
+                  {answeredPlayers.length} / {totalJoinedCount}
+                </div>
+              </div>
+              <div className="p-2.5 bg-emerald-50 rounded-xl border border-emerald-200">
+                <div className="text-[10px] font-bold text-emerald-800 uppercase">Correct</div>
+                <div className="text-base font-black text-emerald-700">{correctCount}</div>
+              </div>
+              <div className="p-2.5 bg-amber-50 rounded-xl border border-amber-200">
+                <div className="text-[10px] font-bold text-amber-800 uppercase">Incorrect</div>
+                <div className="text-base font-black text-amber-700">{incorrectCount}</div>
+              </div>
+              <div className="p-2.5 bg-sand-light rounded-xl border border-bappa-border">
+                <div className="text-[10px] font-bold text-bappa-muted uppercase">Waiting</div>
+                <div className="text-base font-black text-primary">{waitingCount}</div>
+              </div>
             </div>
 
             {answeredPlayers.length === 0 ? (

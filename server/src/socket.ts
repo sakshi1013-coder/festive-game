@@ -13,6 +13,8 @@ interface AuthenticatedSocket extends Socket {
 const autoCallTimers = new Map<string, NodeJS.Timeout>();
 // Track online players per game: gameId -> Set<userId>
 const onlinePlayersPerGame = new Map<string, Set<string>>();
+// Track synchronized question timers per quiz: quizId -> Timeout
+const quizTimers = new Map<string, NodeJS.Timeout>();
 
 export function initSocket(io: Server): void {
   // ─── Authentication Middleware ─────────────────────────────────────────────
@@ -40,59 +42,78 @@ export function initSocket(io: Server): void {
     // ─── Join Game Room ──────────────────────────────────────────────────────
     authedSocket.on('join-game', async ({ gameId }: { gameId: string }) => {
       try {
-        const game = await HousieGame.findById(gameId);
+        let game = null;
+        if (gameId && gameId.length === 24 && /^[0-9a-fA-F]{24}$/.test(gameId)) {
+          game = await HousieGame.findById(gameId);
+        }
+        if (!game && gameId) {
+          game = await HousieGame.findOne({ roomCode: gameId.toUpperCase() });
+        }
+
         if (!game) {
           authedSocket.emit('error', { message: 'Game not found' });
           return;
         }
 
-        // Verify player has a ticket or is host
         const isHost =
           authedSocket.user.role === 'host' || authedSocket.user.role === 'admin';
-        if (!isHost) {
-          const ticket = await HousieTicket.findOne({
-            gameId,
+
+        // Verify player has a ticket or auto-generate if active
+        let ticket = await HousieTicket.findOne({
+          gameId: game._id,
+          playerId: authedSocket.user.userId,
+        });
+
+        if (!ticket && !isHost && ['open', 'started'].includes(game.status)) {
+          const user = await User.findById(authedSocket.user.userId);
+          const ticketGrid = generateTicket();
+          ticket = await HousieTicket.create({
+            gameId: game._id,
             playerId: authedSocket.user.userId,
+            playerName: user?.name || authedSocket.user.name,
+            username: user?.username || '',
+            ticketGrid,
+            markedNumbers: [],
           });
-          if (!ticket) {
-            authedSocket.emit('error', { message: 'You have not joined this game' });
-            return;
-          }
         }
 
-        authedSocket.join(`game:${gameId}`);
-        authedSocket.join(`game:${gameId}:user:${authedSocket.user.userId}`);
+        const gameIdStr = game._id.toString();
+        authedSocket.join(`game:${gameIdStr}`);
+        authedSocket.join(`game:${game.roomCode}`);
+        authedSocket.join(`game:${gameIdStr}:user:${authedSocket.user.userId}`);
 
         // Track online status
-        if (!onlinePlayersPerGame.has(gameId)) {
-          onlinePlayersPerGame.set(gameId, new Set());
+        if (!onlinePlayersPerGame.has(gameIdStr)) {
+          onlinePlayersPerGame.set(gameIdStr, new Set());
         }
-        onlinePlayersPerGame.get(gameId)!.add(authedSocket.user.userId);
+        onlinePlayersPerGame.get(gameIdStr)!.add(authedSocket.user.userId);
 
         // Send current game state
-        const tickets = await HousieTicket.find({ gameId }).populate(
+        const tickets = await HousieTicket.find({ gameId: game._id }).populate(
           'playerId',
           'name username'
         );
-        const claims = await WinnerClaim.find({ gameId });
         const playerCount = tickets.length;
 
         authedSocket.emit('game-state', {
           game,
+          ticket: isHost ? undefined : ticket,
           tickets: isHost ? tickets : undefined,
           playerCount,
           calledNumbers: game.calledNumbers,
-          onlinePlayers: Array.from(onlinePlayersPerGame.get(gameId) || []),
+          onlinePlayers: Array.from(onlinePlayersPerGame.get(gameIdStr) || []),
         });
 
-        // Notify others
-        io.to(`game:${gameId}`).emit('player-joined', {
+        // Notify others in both rooms
+        const joinPayload = {
           userId: authedSocket.user.userId,
           name: authedSocket.user.name,
           playerCount: playerCount,
-        });
+        };
+        io.to(`game:${gameIdStr}`).emit('player-joined', joinPayload);
+        io.to(`game:${game.roomCode}`).emit('player-joined', joinPayload);
 
-        console.log(`[Socket] ${authedSocket.user.name} joined game ${gameId}`);
+        console.log(`[Socket] ${authedSocket.user.name} joined game ${game.roomCode}`);
       } catch (err) {
         console.error('[Socket] join-game error:', err);
         authedSocket.emit('error', { message: 'Failed to join game' });
@@ -517,14 +538,15 @@ export function initSocket(io: Server): void {
     authedSocket.on('join-quiz', async ({ quizId, roomId }: { quizId?: string; roomId?: string }) => {
       try {
         let quiz = null;
-        if (quizId) {
+        if (quizId && quizId.length === 24 && /^[0-9a-fA-F]{24}$/.test(quizId)) {
           quiz = await Quiz.findById(quizId);
-        } else if (roomId) {
-          quiz = await Quiz.findOne({ roomId: roomId.toUpperCase() });
+        }
+        if (!quiz && (roomId || quizId)) {
+          quiz = await Quiz.findOne({ roomId: (roomId || quizId)!.toUpperCase() });
         }
 
         if (!quiz) {
-          authedSocket.emit('quiz:error', { message: 'क्विझ सापडली नाही.' });
+          authedSocket.emit('quiz:error', { message: 'Quiz room not found.' });
           return;
         }
 
@@ -556,13 +578,18 @@ export function initSocket(io: Server): void {
           currentQuestion: sanitizedQ,
           totalQuestions: quiz.totalQuestions,
           isHost: hostRole,
+          activeQuestionId: currentQ?._id,
+          timeLimit: currentQ?.timeLimit || 25,
+          startedAt: quiz.startedAt ? new Date(quiz.startedAt).getTime() : Date.now(),
         });
 
         // Notify room of player join
-        io.to(roomKey).emit('quiz:player_joined', {
+        const joinInfo = {
           userId: authedSocket.user.userId,
           name: authedSocket.user.name,
-        });
+        };
+        io.to(roomKey).emit('quiz:player_joined', joinInfo);
+        io.to(`quiz:${quiz.roomId}`).emit('quiz:player_joined', joinInfo);
       } catch (err) {
         console.error('[Socket] join-quiz error:', err);
       }
@@ -571,7 +598,7 @@ export function initSocket(io: Server): void {
     // Host generates quiz via socket
     authedSocket.on('host:generate_quiz', async (payload: QuizGeneratorOptions & { roomId?: string; title?: string }) => {
       if (!isHost(authedSocket)) {
-        authedSocket.emit('quiz:error', { message: 'केवळ होस्ट क्विझ तयार करू शकतात.' });
+        authedSocket.emit('quiz:error', { message: 'Only hosts can generate a quiz.' });
         return;
       }
 
@@ -583,7 +610,7 @@ export function initSocket(io: Server): void {
 
         const aartis = await Aarti.find({ title: { $in: payload.sourceAartis } });
         if (aartis.length === 0) {
-          authedSocket.emit('quiz:generation_failed', { error: 'निवडलेल्या आरत्या सापडल्या नाहीत.' });
+          authedSocket.emit('quiz:generation_failed', { error: 'Selected Aartis not found.' });
           return;
         }
 
@@ -596,7 +623,7 @@ export function initSocket(io: Server): void {
 
         const quiz = await Quiz.create({
           roomId: code,
-          title: payload.title || `श्री गणेश आरती प्रश्नमंजुषा (${payload.sourceAartis.join(', ')})`,
+          title: payload.title?.trim() || 'Ganapati Aarti Quiz',
           totalQuestions: generated.length,
           difficulty: payload.difficulty || 'mixed',
           selectedTypes: payload.selectedTypes || ['mixed'],
@@ -623,16 +650,25 @@ export function initSocket(io: Server): void {
         });
       } catch (err: any) {
         console.error('[Socket] host:generate_quiz error:', err);
-        authedSocket.emit('quiz:generation_failed', { error: err.message || 'निर्मिती अयशस्वी.' });
+        authedSocket.emit('quiz:generation_failed', { error: err.message || 'Quiz generation failed.' });
       }
     });
 
     // Host starts live quiz
     authedSocket.on('host:start_quiz', async ({ quizId }: { quizId: string }) => {
-      if (!isHost(authedSocket)) return;
+      if (!isHost(authedSocket)) {
+        authedSocket.emit('error', { message: 'Host access required' });
+        return;
+      }
 
       try {
-        const quiz = await Quiz.findById(quizId);
+        let quiz = null;
+        if (quizId && quizId.length === 24 && /^[0-9a-fA-F]{24}$/.test(quizId)) {
+          quiz = await Quiz.findById(quizId);
+        }
+        if (!quiz && quizId) {
+          quiz = await Quiz.findOne({ roomId: quizId.toUpperCase() });
+        }
         if (!quiz) return;
 
         quiz.status = 'active';
@@ -642,12 +678,14 @@ export function initSocket(io: Server): void {
 
         const firstQ = await QuizQuestion.findOne({ quizId: quiz._id }).sort({ createdAt: 1 });
 
-        io.to(`quiz:${quiz._id}`).emit('quiz:started', {
+        const startPayload = {
           quizId: quiz._id,
           roomId: quiz.roomId,
           title: quiz.title,
           totalQuestions: quiz.totalQuestions,
-        });
+        };
+        io.to(`quiz:${quiz._id}`).emit('quiz:started', startPayload);
+        io.to(`quiz:${quiz.roomId}`).emit('quiz:started', startPayload);
 
         if (firstQ) {
           const sanitized = firstQ.toObject();
@@ -656,12 +694,45 @@ export function initSocket(io: Server): void {
           delete sanitized.incorrectWord;
           delete sanitized.correctWord;
 
-          io.to(`quiz:${quiz._id}`).emit('quiz:next_question', {
+          const limit = firstQ.timeLimit || 25;
+          const questionPayload = {
+            quizId: quiz._id.toString(),
+            roomId: quiz.roomId,
+            questionId: firstQ._id.toString(),
+            questionNumber: 1,
             questionIndex: 0,
             totalQuestions: quiz.totalQuestions,
             question: sanitized,
-            fullQuestionForHost: firstQ, // host gets complete verified answer
-          });
+            timeLimit: limit,
+            startedAt: Date.now(),
+            fullQuestionForHost: firstQ,
+          };
+
+          io.to(`quiz:${quiz._id}`).emit('quiz:question', questionPayload);
+          io.to(`quiz:${quiz.roomId}`).emit('quiz:question', questionPayload);
+          io.to(`quiz:${quiz._id}`).emit('quiz:next_question', questionPayload);
+          io.to(`quiz:${quiz.roomId}`).emit('quiz:next_question', questionPayload);
+
+          // Clear previous timer & set authoritative question timer
+          const qTimerKey = quiz._id.toString();
+          if (quizTimers.has(qTimerKey)) {
+            clearTimeout(quizTimers.get(qTimerKey)!);
+          }
+          const timer = setTimeout(() => {
+            const endPayload = {
+              quizId: quiz!._id.toString(),
+              roomId: quiz!.roomId,
+              questionId: firstQ._id.toString(),
+              correctAnswer: firstQ.correctAnswer || firstQ.correctOrder || firstQ.incorrectWord,
+              correctWord: firstQ.correctWord,
+              sourceAarti: firstQ.sourceAarti,
+              sourceLine: firstQ.sourceLine,
+              explanation: firstQ.explanation,
+            };
+            io.to(`quiz:${quiz!._id}`).emit('quiz:question_ended', endPayload);
+            io.to(`quiz:${quiz!.roomId}`).emit('quiz:question_ended', endPayload);
+          }, limit * 1000 + 1000);
+          quizTimers.set(qTimerKey, timer);
         }
       } catch (err) {
         console.error('[Socket] host:start_quiz error:', err);
@@ -670,11 +741,26 @@ export function initSocket(io: Server): void {
 
     // Host moves to next question
     authedSocket.on('host:next_question', async ({ quizId, questionIndex }: { quizId: string; questionIndex: number }) => {
-      if (!isHost(authedSocket)) return;
+      if (!isHost(authedSocket)) {
+        authedSocket.emit('error', { message: 'Host access required' });
+        return;
+      }
 
       try {
-        const quiz = await Quiz.findById(quizId);
+        let quiz = null;
+        if (quizId && quizId.length === 24 && /^[0-9a-fA-F]{24}$/.test(quizId)) {
+          quiz = await Quiz.findById(quizId);
+        }
+        if (!quiz && quizId) {
+          quiz = await Quiz.findOne({ roomId: quizId.toUpperCase() });
+        }
         if (!quiz) return;
+
+        const qTimerKey = quiz._id.toString();
+        if (quizTimers.has(qTimerKey)) {
+          clearTimeout(quizTimers.get(qTimerKey)!);
+          quizTimers.delete(qTimerKey);
+        }
 
         const questions = await QuizQuestion.find({ quizId: quiz._id }).sort({ createdAt: 1 });
         const nextIdx = questionIndex !== undefined ? questionIndex : (quiz.currentQuestionIndex || 0) + 1;
@@ -684,10 +770,13 @@ export function initSocket(io: Server): void {
           quiz.completedAt = new Date();
           await quiz.save();
 
-          io.to(`quiz:${quiz._id}`).emit('quiz:completed', {
-            quizId: quiz._id,
+          const completePayload = {
+            quizId: quiz._id.toString(),
+            roomId: quiz.roomId,
             totalQuestions: quiz.totalQuestions,
-          });
+          };
+          io.to(`quiz:${quiz._id}`).emit('quiz:completed', completePayload);
+          io.to(`quiz:${quiz.roomId}`).emit('quiz:completed', completePayload);
           return;
         }
 
@@ -701,12 +790,41 @@ export function initSocket(io: Server): void {
         delete sanitized.incorrectWord;
         delete sanitized.correctWord;
 
-        io.to(`quiz:${quiz._id}`).emit('quiz:next_question', {
+        const limit = nextQ.timeLimit || 25;
+        const questionPayload = {
+          quizId: quiz._id.toString(),
+          roomId: quiz.roomId,
+          questionId: nextQ._id.toString(),
+          questionNumber: nextIdx + 1,
           questionIndex: nextIdx,
           totalQuestions: quiz.totalQuestions,
           question: sanitized,
+          timeLimit: limit,
+          startedAt: Date.now(),
           fullQuestionForHost: nextQ,
-        });
+        };
+
+        io.to(`quiz:${quiz._id}`).emit('quiz:question', questionPayload);
+        io.to(`quiz:${quiz.roomId}`).emit('quiz:question', questionPayload);
+        io.to(`quiz:${quiz._id}`).emit('quiz:next_question', questionPayload);
+        io.to(`quiz:${quiz.roomId}`).emit('quiz:next_question', questionPayload);
+
+        // Synchronized question timer
+        const timer = setTimeout(() => {
+          const endPayload = {
+            quizId: quiz!._id.toString(),
+            roomId: quiz!.roomId,
+            questionId: nextQ._id.toString(),
+            correctAnswer: nextQ.correctAnswer || nextQ.correctOrder || nextQ.incorrectWord,
+            correctWord: nextQ.correctWord,
+            sourceAarti: nextQ.sourceAarti,
+            sourceLine: nextQ.sourceLine,
+            explanation: nextQ.explanation,
+          };
+          io.to(`quiz:${quiz!._id}`).emit('quiz:question_ended', endPayload);
+          io.to(`quiz:${quiz!.roomId}`).emit('quiz:question_ended', endPayload);
+        }, limit * 1000 + 1000);
+        quizTimers.set(qTimerKey, timer);
       } catch (err) {
         console.error('[Socket] host:next_question error:', err);
       }
@@ -714,30 +832,72 @@ export function initSocket(io: Server): void {
 
     // Host ends question time and reveals answer
     authedSocket.on('host:end_question', async ({ quizId, questionId }: { quizId: string; questionId: string }) => {
-      if (!isHost(authedSocket)) return;
+      if (!isHost(authedSocket)) {
+        authedSocket.emit('error', { message: 'Host access required' });
+        return;
+      }
 
       try {
+        let quiz = null;
+        if (quizId && quizId.length === 24 && /^[0-9a-fA-F]{24}$/.test(quizId)) {
+          quiz = await Quiz.findById(quizId);
+        }
+        if (!quiz && quizId) {
+          quiz = await Quiz.findOne({ roomId: quizId.toUpperCase() });
+        }
+
+        const qTimerKey = quiz ? quiz._id.toString() : quizId;
+        if (quizTimers.has(qTimerKey)) {
+          clearTimeout(quizTimers.get(qTimerKey)!);
+          quizTimers.delete(qTimerKey);
+        }
+
         const question = await QuizQuestion.findById(questionId);
         if (!question) return;
 
-        io.to(`quiz:${quizId}`).emit('quiz:question_ended', {
+        const endPayload = {
+          quizId: quiz ? quiz._id.toString() : quizId,
+          roomId: quiz?.roomId,
           questionId,
           correctAnswer: question.correctAnswer || question.correctOrder || question.incorrectWord,
           correctWord: question.correctWord,
           sourceAarti: question.sourceAarti,
           sourceLine: question.sourceLine,
           explanation: question.explanation,
-        });
+        };
+
+        io.to(`quiz:${qTimerKey}`).emit('quiz:question_ended', endPayload);
+        if (quiz?.roomId) {
+          io.to(`quiz:${quiz.roomId}`).emit('quiz:question_ended', endPayload);
+        }
       } catch (err) {
         console.error('[Socket] host:end_question error:', err);
       }
     });
 
     // Player submits answer in real-time
-    authedSocket.on('player:submit_answer', async ({ quizId, questionId, answer, timeTaken }: any) => {
+    authedSocket.on('player:submit_answer', async ({ roomId, quizId, questionId, answer, timeTaken }: any) => {
       try {
+        let quiz = null;
+        if (quizId && quizId.length === 24 && /^[0-9a-fA-F]{24}$/.test(quizId)) {
+          quiz = await Quiz.findById(quizId);
+        }
+        if (!quiz && (roomId || quizId)) {
+          quiz = await Quiz.findOne({ roomId: (roomId || quizId).toUpperCase() });
+        }
+
         const question = await QuizQuestion.findById(questionId);
-        if (!question) return;
+        if (!question) {
+          authedSocket.emit('player:submit_error', { message: 'Question not found.' });
+          return;
+        }
+
+        // 1. Immediately acknowledge submission so player UI never freezes
+        authedSocket.emit('player:answer_received', {
+          questionId,
+          received: true,
+          timestamp: Date.now(),
+        });
 
         let isCorrect = false;
         switch (question.type) {
@@ -771,13 +931,14 @@ export function initSocket(io: Server): void {
         if (isCorrect) {
           points = question.points || 10;
           if (timeTaken <= (question.timeLimit || 25) / 2) {
-            points += 5; // Fast bonus
+            points += 5; // Fast response bonus
           }
           await User.findByIdAndUpdate(authedSocket.user.userId, {
             $inc: { totalPoints: points },
           });
         }
 
+        // Return individual result to player
         authedSocket.emit('player:answer_result', {
           questionId,
           correct: isCorrect,
@@ -786,16 +947,24 @@ export function initSocket(io: Server): void {
           correctWord: question.correctWord,
           sourceAarti: question.sourceAarti,
           sourceLine: question.sourceLine,
+          explanation: question.explanation,
         });
 
-        // Notify host that player answered
-        io.to(`quiz:${quizId}`).emit('quiz:player_answered', {
+        // Broadcast to host that player answered
+        const targetRoom = quiz ? `quiz:${quiz._id}` : `quiz:${quizId}`;
+        const answerBroadcast = {
           userId: authedSocket.user.userId,
           name: authedSocket.user.name,
           correct: isCorrect,
-        });
+          questionId,
+        };
+        io.to(targetRoom).emit('quiz:player_answered', answerBroadcast);
+        if (quiz?.roomId) {
+          io.to(`quiz:${quiz.roomId}`).emit('quiz:player_answered', answerBroadcast);
+        }
       } catch (err) {
         console.error('[Socket] player:submit_answer error:', err);
+        authedSocket.emit('player:submit_error', { message: 'Submission error. Please retry.' });
       }
     });
 

@@ -126,18 +126,25 @@ router.post('/join', authMiddleware, async (req: Request, res: Response) => {
   }
 });
 
+// Helper to look up Housie game by either Mongo ObjectId or 6-character roomCode
+async function findHousieGameByIdOrCode(identifier: string) {
+  if (identifier && identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier)) {
+    const g = await HousieGame.findById(identifier).populate('hostId', 'name username');
+    if (g) return g;
+  }
+  return await HousieGame.findOne({ roomCode: identifier?.toUpperCase() }).populate('hostId', 'name username');
+}
+
 // GET /api/housie/:gameId
 router.get('/:gameId', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const game = await HousieGame.findById(req.params.gameId).populate(
-      'hostId',
-      'name username'
-    );
+    const game = await findHousieGameByIdOrCode(req.params.gameId);
     if (!game) return res.status(404).json({ error: 'Game not found' });
 
     const playerCount = await HousieTicket.countDocuments({ gameId: game._id });
     return res.json({ game, playerCount });
-  } catch {
+  } catch (err) {
+    console.error('Fetch housie game error:', err);
     return res.status(500).json({ error: 'Failed to fetch game' });
   }
 });
@@ -146,13 +153,35 @@ router.get('/:gameId', authMiddleware, async (req: Request, res: Response) => {
 router.get('/:gameId/ticket', authMiddleware, async (req: Request, res: Response) => {
   try {
     const player = (req as any).user;
-    const ticket = await HousieTicket.findOne({
-      gameId: req.params.gameId,
+    const game = await findHousieGameByIdOrCode(req.params.gameId);
+    if (!game) return res.status(404).json({ error: 'Game not found' });
+
+    let ticket = await HousieTicket.findOne({
+      gameId: game._id,
       playerId: player.userId,
     });
+
+    // Auto-create ticket if player joins an open/started game
+    if (!ticket && ['open', 'started'].includes(game.status)) {
+      const playerCount = await HousieTicket.countDocuments({ gameId: game._id });
+      if (playerCount < game.maxPlayers) {
+        const user = await User.findById(player.userId);
+        const ticketGrid = generateTicket();
+        ticket = await HousieTicket.create({
+          gameId: game._id,
+          playerId: player.userId,
+          playerName: user?.name || player.name,
+          username: user?.username || '',
+          ticketGrid,
+          markedNumbers: [],
+        });
+      }
+    }
+
     if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
-    return res.json({ ticket });
-  } catch {
+    return res.json({ ticket, game });
+  } catch (err) {
+    console.error('Fetch housie ticket error:', err);
     return res.status(500).json({ error: 'Failed to fetch ticket' });
   }
 });
@@ -163,7 +192,7 @@ router.post('/:gameId/claim', authMiddleware, async (req: Request, res: Response
     const player = (req as any).user;
     const { pattern } = req.body;
 
-    const game = await HousieGame.findById(req.params.gameId);
+    const game = await findHousieGameByIdOrCode(req.params.gameId);
     if (!game) return res.status(404).json({ error: 'Game not found' });
 
     if (game.status !== 'started') {

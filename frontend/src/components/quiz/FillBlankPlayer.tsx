@@ -39,11 +39,6 @@ export default function FillBlankPlayer({
         <div className="text-xl sm:text-2xl font-black text-bappa-text leading-relaxed whitespace-pre-line">
           {question.question.replace('______', picked ? `【 ${picked} 】` : '【 ______ 】')}
         </div>
-        {question.sourceAarti && (
-          <div className="mt-3 inline-flex items-center gap-1.5 text-xs text-primary font-bold bg-primary-light px-3 py-1 rounded-full">
-            <Sparkles className="w-3.5 h-3.5" /> Source: {question.sourceAarti}
-          </div>
-        )}
       </div>
 
       {/* Options grid */}

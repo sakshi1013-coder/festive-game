@@ -982,11 +982,63 @@ export function generateAartiQuiz(
     }
   }
 
+  // ─── Robust Fallback Pass ──────────────────────────────────────────────────
+  // If strict combination attempts didn't reach totalQuestions (e.g. only 1-2 Aartis selected),
+  // cycle through lines with general question types (MCQ, Fill-blank, True/False, Missing line)
   if (questions.length < totalQuestions) {
-    // If not enough questions generated from strict constraints, throw clear error
-    throw new Error(
-      `निवडलेल्या आरत्यांमधून पुरेसे अस्सल प्रश्न तयार होऊ शकले नाहीत (फक्त ${questions.length}/${totalQuestions} तयार झाले). कृपया अधिक आरत्या निवडा किंवा प्रश्नांची संख्या कमी करा.`
-    );
+    const fallbackTypes: QuestionType[] = ['fill_blank_options', 'mcq', 'true_false', 'missing_line', 'incorrect_word', 'arrange_aarti'];
+    for (const aarti of activeAartis) {
+      if (questions.length >= totalQuestions) break;
+      for (const fType of fallbackTypes) {
+        if (questions.length >= totalQuestions) break;
+        let gen: GeneratedQuestion | null = null;
+        if (fType === 'fill_blank_options') gen = generateFillBlankQuestion(aarti, activeAartis, difficulty);
+        else if (fType === 'mcq') gen = generateMCQQuestion(aarti, activeAartis, difficulty);
+        else if (fType === 'true_false') gen = generateTrueFalseQuestion(aarti, difficulty);
+        else if (fType === 'missing_line') gen = generateMissingLineQuestion(aarti, activeAartis, difficulty);
+        else if (fType === 'incorrect_word') gen = generateIncorrectWordQuestion(aarti, difficulty);
+        else if (fType === 'arrange_aarti') gen = generateArrangeAartiQuestion(aarti, difficulty);
+
+        if (gen && !usedQuestionsSet.has(gen.question)) {
+          usedQuestionsSet.add(gen.question);
+          questions.push(gen);
+        }
+      }
+    }
+  }
+
+  // If still needing a few questions (e.g. very short single prayer),
+  // generate fill-in-the-blank on remaining lines
+  if (questions.length < totalQuestions) {
+    for (const aarti of activeAartis) {
+      for (const line of aarti.allLines) {
+        if (questions.length >= totalQuestions) break;
+        const words = line.trim().split(/\s+/).filter((w) => w.length >= 3);
+        if (words.length >= 3) {
+          const targetWord = words[Math.floor(Math.random() * words.length)];
+          const distractorPool = ['मोरया', 'मंगलमूर्ती', 'गणराज', 'विघ्नहर्ता', 'लंबोदर', 'गजानन', 'एकदंत'];
+          const distractors = distractorPool.filter((d) => d !== targetWord).slice(0, 3);
+          const options = shuffleArray([targetWord, ...distractors]);
+          const blankText = line.replace(targetWord, '______');
+          const qText = `खालील रिकाम्या जागी योग्य शब्द भरा:\n"${blankText}"`;
+          if (!usedQuestionsSet.has(qText)) {
+            usedQuestionsSet.add(qText);
+            questions.push({
+              type: 'fill_blank_options',
+              question: qText,
+              options,
+              correctAnswer: targetWord,
+              sourceAarti: aarti.title,
+              sourceLine: line,
+              points: 10,
+              timeLimit: 20,
+              verified: true,
+              difficulty: difficulty as any,
+            });
+          }
+        }
+      }
+    }
   }
 
   onProgress?.(100, 'क्विझ निर्मिती पूर्ण झाली!');
