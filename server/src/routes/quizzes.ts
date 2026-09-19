@@ -302,13 +302,18 @@ router.post('/:quizId/submit', authMiddleware, async (req: Request, res: Respons
         isCorrect = false;
     }
 
-    // Award points (with fast response bonus if <= 50% timeLimit taken)
+    // Award points based on speed (Kahoot-style dynamic response scoring)
     let pointsEarned = 0;
+    const timeLimit = Math.max(question.timeLimit || 25, 5);
+    const validTime = Math.min(Math.max(Number(timeTaken) || 0, 0.2), timeLimit);
+
     if (isCorrect) {
-      pointsEarned = question.points || 10;
-      if (timeTaken <= (question.timeLimit || 25) / 2) {
-        pointsEarned += 5; // +5 Speed bonus!
-      }
+      // Kahoot formula: points = maxPoints * (1 - ((response_time / time_limit) / 2))
+      // Instant answer = 100% maxPoints, last-second answer = 50% maxPoints
+      const maxPoints = (question.points && question.points >= 100) ? question.points : ((question.points || 10) * 100);
+      const speedMultiplier = Math.max(0.5, 1 - ((validTime / timeLimit) / 2));
+      pointsEarned = Math.max(Math.round(maxPoints * speedMultiplier), 50);
+
       await User.findByIdAndUpdate(user.userId, {
         $inc: { totalPoints: pointsEarned },
       });
@@ -317,6 +322,7 @@ router.post('/:quizId/submit', authMiddleware, async (req: Request, res: Respons
     return res.json({
       correct: isCorrect,
       points: pointsEarned,
+      timeTaken: Math.round(validTime * 10) / 10,
       correctAnswer: question.correctAnswer || question.correctOrder || question.incorrectWord,
       correctWord: question.correctWord,
       sourceAarti: question.sourceAarti,

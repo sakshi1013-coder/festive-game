@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Search, Users, Clock, ChevronRight, Loader2, Grid3X3, Ticket } from 'lucide-react';
+import { Search, Users, Clock, ChevronRight, Loader2, Grid3X3, Ticket, ArrowLeft } from 'lucide-react';
 import { housieApi } from '@/lib/api';
 import { HousieGame, STATUS_COLORS } from '@/types/index';
 
@@ -37,38 +38,52 @@ export default function JoinHousiePage() {
     }
   };
 
+  const activeGames = games.filter(
+    (g) => g.status !== 'completed' && (g.status as string) !== 'ended' && g.status !== 'cancelled'
+  );
+  const hasLiveTables = activeGames.some((g) => g.status === 'started');
+
   return (
     <div className="page-transition space-y-8 max-w-5xl mx-auto">
       <div>
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pastel-blue/60 text-bappa-text font-bold text-xs uppercase tracking-wider mb-2">
-          🎟️ Festival Housie Lounge
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-xs font-black text-bappa-muted hover:text-bappa-text transition-colors px-3 py-1.5 rounded-xl bg-white border border-pastel-border/80 shadow-2xs hover:shadow-xs mb-3"
+        >
+          <ArrowLeft className="w-4 h-4 text-primary" />
+          <span>Back to Dashboard</span>
+        </Link>
+        <div className="block">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pastel-blue/60 text-bappa-text font-bold text-xs uppercase tracking-wider mb-2">
+            🎟️ Festival Housie Lounge
+          </div>
         </div>
         <h1 className="text-3xl sm:text-4xl font-black text-bappa-text tracking-tight">Join Housie Game</h1>
         <p className="text-bappa-muted text-sm sm:text-base mt-1">Enter a 6-digit room code or join an active game table</p>
       </div>
 
       {/* Join by code */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-pastel-border/80 shadow-pastel-sm max-w-lg">
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-pastel-border/80 shadow-pastel-sm max-w-lg overflow-hidden">
         <h2 className="font-bold text-bappa-text mb-4 flex items-center gap-2.5 text-lg">
           <div className="w-8 h-8 rounded-xl bg-pastel-blue/70 flex items-center justify-center text-primary font-bold">
             <Search className="w-4 h-4 text-primary" />
           </div>
           Enter Room Code
         </h2>
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="space-y-3">
           <input
             type="text"
             value={roomCode}
             onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
             placeholder="BAPPA1"
             maxLength={6}
-            className="flex-1 bg-pastel-surface border-2 border-pastel-border focus:border-primary focus:bg-white rounded-2xl px-4 py-3 text-center text-2xl font-black tracking-[0.3em] uppercase text-bappa-text placeholder:text-bappa-muted/50 transition-all outline-none"
+            className="w-full bg-pastel-surface border-2 border-pastel-border focus:border-primary focus:bg-white rounded-2xl px-4 py-3 text-center text-2xl font-black tracking-[0.25em] uppercase text-bappa-text placeholder:text-bappa-muted/50 transition-all outline-none"
             onKeyDown={(e) => e.key === 'Enter' && handleJoin(roomCode)}
           />
           <button
             onClick={() => handleJoin(roomCode)}
-            disabled={joining}
-            className="btn-primary flex-shrink-0 text-base py-3 px-8 shadow-pastel-sm"
+            disabled={joining || !roomCode.trim()}
+            className="btn-primary w-full text-base py-3.5 px-6 shadow-pastel-sm flex items-center justify-center gap-2 rounded-2xl font-black transition-all"
           >
             {joining ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Enter Game'}
           </button>
@@ -84,9 +99,13 @@ export default function JoinHousiePage() {
       <div>
         <h2 className="text-xl font-black text-bappa-text mb-4 flex items-center gap-2">
           <span>Active Housie Tables</span>
-          <span className="text-xs px-2.5 py-0.5 rounded-full bg-pastel-mint text-bappa-text font-bold">Live</span>
+          {hasLiveTables && (
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-pastel-mint text-emerald-900 font-bold animate-pulse">
+              Live
+            </span>
+          )}
         </h2>
-        {games.length === 0 ? (
+        {activeGames.length === 0 ? (
           <div className="bg-white/80 rounded-3xl border border-pastel-border/80 text-center py-12 px-4 shadow-pastel-sm">
             <div className="w-16 h-16 bg-pastel-yellow/60 rounded-3xl flex items-center justify-center mx-auto mb-3 shadow-pastel-sm">
               <Ticket className="w-8 h-8 text-bappa-text/80" />
@@ -96,7 +115,7 @@ export default function JoinHousiePage() {
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {games.map((game) => (
+            {activeGames.map((game) => (
               <motion.div
                 key={game._id}
                 initial={{ opacity: 0, y: 12 }}
@@ -108,8 +127,12 @@ export default function JoinHousiePage() {
                   <div className="w-11 h-11 bg-pastel-blue/60 group-hover:bg-pastel-blue rounded-2xl flex items-center justify-center transition-colors">
                     <Grid3X3 className="w-5 h-5 text-bappa-text" />
                   </div>
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider bg-pastel-mint text-bappa-text">
-                    {game.status}
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider ${
+                    game.status === 'started'
+                      ? 'bg-pastel-mint text-emerald-900'
+                      : 'bg-pastel-blue/70 text-blue-900'
+                  }`}>
+                    {game.status === 'started' ? 'Live' : 'Lobby'}
                   </span>
                 </div>
                 <h3 className="font-bold text-bappa-text text-base mb-1">{game.name}</h3>

@@ -35,7 +35,8 @@ export interface HousieGame {
 }
 
 export interface WinEntry {
-  playerId: string;
+  playerId: string | { _id: string; name: string; username?: string };
+  playerName?: string;
   pattern: string;
   claimId: string;
   approvedAt: string;

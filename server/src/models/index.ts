@@ -251,6 +251,7 @@ export interface IHousieGame extends Document {
   autoCallInterval: number; // seconds
   winners: {
     playerId: mongoose.Types.ObjectId;
+    playerName?: string;
     pattern: string;
     claimId: mongoose.Types.ObjectId;
     approvedAt: Date;
@@ -284,6 +285,7 @@ const HousieGameSchema = new Schema<IHousieGame>(
     winners: [
       {
         playerId: { type: Schema.Types.ObjectId, ref: 'User' },
+        playerName: String,
         pattern: String,
         claimId: { type: Schema.Types.ObjectId, ref: 'WinnerClaim' },
         approvedAt: Date,

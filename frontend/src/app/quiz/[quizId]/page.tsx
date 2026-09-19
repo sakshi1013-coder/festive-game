@@ -11,6 +11,8 @@ import {
   Trophy,
   Award,
   ArrowRight,
+  ArrowLeft,
+  Users,
   RefreshCw,
   AlertCircle,
   BookOpen,
@@ -58,6 +60,8 @@ export default function PlayerQuizPage() {
   const [answerResult, setAnswerResult] = useState<{
     correct: boolean;
     points: number;
+    timeTaken?: number;
+    speedMultiplier?: number;
     correctAnswer?: any;
     correctWord?: string;
     sourceAarti?: string;
@@ -67,6 +71,16 @@ export default function PlayerQuizPage() {
   const [isRevealed, setIsRevealed] = useState<boolean>(false);
   const [totalEarnedPoints, setTotalEarnedPoints] = useState<number>(0);
   const [correctCount, setCorrectCount] = useState<number>(0);
+
+  // Multiplayer Live Stats
+  const [playerCount, setPlayerCount] = useState<number>(1);
+  const [answeredCount, setAnsweredCount] = useState<number>(0);
+  const [roundStats, setRoundStats] = useState<{
+    answeredCount: number;
+    correctCount: number;
+    incorrectCount: number;
+    totalPlayers: number;
+  } | null>(null);
 
   // Timer
   const [timeLeft, setTimeLeft] = useState<number>(25);
@@ -120,11 +134,36 @@ export default function PlayerQuizPage() {
       if (data.currentQuestionIndex !== undefined) {
         setCurrentIndex(data.currentQuestionIndex);
       }
+      if (data.playerCount) {
+        setPlayerCount(data.playerCount);
+      }
+      if (data.answeredCount !== undefined) {
+        setAnsweredCount(data.answeredCount);
+      }
       if (data.currentQuestion) {
         setCurrentQuestion(data.currentQuestion);
         const limit = data.timeLimit || data.currentQuestion.timeLimit || 25;
         const elapsed = data.startedAt ? Math.floor((Date.now() - data.startedAt) / 1000) : 0;
         setTimeLeft(Math.max(1, limit - elapsed));
+      }
+    });
+
+    socket.on('quiz:player_joined', (data: any) => {
+      if (data.playerCount) setPlayerCount(data.playerCount);
+      else setPlayerCount((prev) => prev + 1);
+    });
+
+    socket.on('quiz:player_left', (data: any) => {
+      if (data.playerCount) setPlayerCount(data.playerCount);
+      else setPlayerCount((prev) => Math.max(1, prev - 1));
+    });
+
+    socket.on('quiz:player_answered', (data: any) => {
+      if (data.answeredCount !== undefined) {
+        setAnsweredCount(data.answeredCount);
+      }
+      if (data.totalPlayers) {
+        setPlayerCount(data.totalPlayers);
       }
     });
 
@@ -148,6 +187,8 @@ export default function PlayerQuizPage() {
       setSubmitError('');
       setAnswerResult(null);
       setIsRevealed(false);
+      setAnsweredCount(0);
+      setRoundStats(null);
 
       const limit = data.timeLimit || data.question?.timeLimit || 25;
       const elapsed = data.startedAt ? Math.floor((Date.now() - data.startedAt) / 1000) : 0;
@@ -184,9 +225,19 @@ export default function PlayerQuizPage() {
       setIsRevealed(true);
       setTimerActive(false);
       if (data) {
+        if (data.answeredCount !== undefined) {
+          setRoundStats({
+            answeredCount: data.answeredCount || 0,
+            correctCount: data.correctCount || 0,
+            incorrectCount: data.incorrectCount || 0,
+            totalPlayers: data.totalPlayers || playerCount,
+          });
+        }
         setAnswerResult((prev) => ({
           correct: prev?.correct || false,
           points: prev?.points || 0,
+          timeTaken: prev?.timeTaken,
+          speedMultiplier: prev?.speedMultiplier,
           correctAnswer: data.correctAnswer,
           correctWord: data.correctWord,
           sourceAarti: data.sourceAarti,
@@ -202,6 +253,9 @@ export default function PlayerQuizPage() {
 
     return () => {
       socket.off('quiz:state');
+      socket.off('quiz:player_joined');
+      socket.off('quiz:player_left');
+      socket.off('quiz:player_answered');
       socket.off('quiz:started');
       socket.off('quiz:question', handleQuestionUpdate);
       socket.off('quiz:next_question', handleQuestionUpdate);
@@ -321,6 +375,19 @@ export default function PlayerQuizPage() {
   if (quiz.status === 'ready') {
     return (
       <div className="max-w-2xl mx-auto space-y-6 py-6 sm:py-8 px-4 page-transition">
+        <div className="flex items-center justify-between">
+          <Link
+            href="/quiz"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-bappa-muted hover:text-bappa-text px-3 py-1.5 rounded-xl bg-white border border-bappa-border hover:border-primary transition-all shadow-2xs"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to Quizzes
+          </Link>
+          <div className="inline-flex items-center gap-1.5 text-xs font-black text-bappa-text px-3 py-1.5 rounded-xl bg-pastel-blue/40 border border-pastel-blue">
+            <Users className="w-3.5 h-3.5 text-primary" />
+            <span>{playerCount} Players Joined</span>
+          </div>
+        </div>
+
         <div className="card shadow-card-lg border border-bappa-border text-center p-6 sm:p-8 space-y-6 relative overflow-hidden rounded-4xl bg-surface">
           <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-3xl bg-pastel-lavender flex items-center justify-center shadow-xs border border-pastel-lavender-dark">
             <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
@@ -380,6 +447,15 @@ export default function PlayerQuizPage() {
   if (quiz.status === 'completed') {
     return (
       <div className="max-w-xl mx-auto space-y-6 py-8 sm:py-10 px-4 page-transition text-center">
+        <div className="flex justify-start">
+          <Link
+            href="/quiz"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-bappa-muted hover:text-bappa-text px-3 py-1.5 rounded-xl bg-white border border-bappa-border hover:border-primary transition-all shadow-2xs"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to Quizzes
+          </Link>
+        </div>
+
         <div className="card shadow-card-lg border border-bappa-border p-6 sm:p-8 space-y-6 relative overflow-hidden rounded-4xl bg-surface">
           <div className="w-20 h-20 mx-auto rounded-3xl bg-pastel-yellow flex items-center justify-center border border-pastel-yellow-dark shadow-pastel-yellow">
             <Trophy className="w-10 h-10 text-gold-dark animate-pulse" />
@@ -423,7 +499,26 @@ export default function PlayerQuizPage() {
   const timerPercentage = Math.max(0, (timeLeft / maxTimer) * 100);
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 pb-20 page-transition">
+    <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6 pb-20 page-transition">
+      {/* Top Back & Multiplayer Live Stats Banner */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Link
+          href="/quiz"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-bappa-muted hover:text-bappa-text px-3 py-1.5 rounded-xl bg-white border border-bappa-border hover:border-primary transition-all shadow-2xs"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" /> Back to Quizzes
+        </Link>
+        <div className="flex items-center gap-2">
+          <div className="inline-flex items-center gap-1 text-xs font-black px-2.5 py-1 rounded-xl bg-pastel-blue/40 border border-pastel-blue text-[#204068]">
+            <Users className="w-3.5 h-3.5 text-primary" />
+            <span>{playerCount} in Room</span>
+          </div>
+          <div className="inline-flex items-center gap-1 text-xs font-black px-2.5 py-1 rounded-xl bg-pastel-mint/50 border border-pastel-mint text-[#1C4D32]">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-800" />
+            <span>⚡ {answeredCount} / {playerCount} Answered</span>
+          </div>
+        </div>
+      </div>
       {/* Top Header with Q Number, Timer, and Score */}
       <div className="card shadow-card border border-bappa-border p-4 sm:p-5 flex items-center justify-between gap-4 rounded-3xl bg-surface">
         {/* Question Counter */}
@@ -470,6 +565,28 @@ export default function PlayerQuizPage() {
           style={{ width: `${timerPercentage}%` }}
         />
       </div>
+
+      {/* Real-time Answer Breakdown (Kahoot-Style) on Question Ended */}
+      {isRevealed && roundStats && (
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card border border-bappa-border p-4 rounded-3xl bg-surface shadow-xs flex flex-wrap items-center justify-between gap-3"
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-black text-bappa-text">🎯 Round Results:</span>
+            <span className="text-xs font-black text-emerald-900 bg-pastel-mint px-2.5 py-1 rounded-xl border border-pastel-mint-dark">
+              ✅ {roundStats.correctCount} Correct
+            </span>
+            <span className="text-xs font-black text-rose-900 bg-pastel-pink px-2.5 py-1 rounded-xl border border-pastel-pink-dark">
+              ❌ {roundStats.incorrectCount} Incorrect
+            </span>
+          </div>
+          <div className="text-xs text-bappa-muted font-bold">
+            {roundStats.answeredCount} of {roundStats.totalPlayers} answered
+          </div>
+        </motion.div>
+      )}
 
       {/* Main Question Card */}
       {currentQuestion && (
@@ -540,7 +657,7 @@ export default function PlayerQuizPage() {
               />
             )}
 
-            {/* 5. Match Lines */}
+            {/* 5. Match Pairs */}
             {currentQuestion.type === 'match_lines' && (
               <MatchLinesPlayer
                 question={currentQuestion}
@@ -550,8 +667,10 @@ export default function PlayerQuizPage() {
               />
             )}
 
-            {/* 6. MCQ / True False / Missing Line */}
-            {['mcq', 'true_false', 'missing_line'].includes(currentQuestion.type) && (
+            {/* 6. MCQ, True/False & Missing Line */}
+            {(currentQuestion.type === 'mcq' ||
+              currentQuestion.type === 'true_false' ||
+              currentQuestion.type === 'missing_line') && (
               <StandardOptionsPlayer
                 question={currentQuestion}
                 onSubmit={handleAnswerSubmit}
@@ -563,34 +682,14 @@ export default function PlayerQuizPage() {
             )}
           </div>
 
-          {/* Active Submission Confirmation Banner */}
+          {/* Submission Status Indicator */}
           {hasSubmitted && !isRevealed && (
-            <div className="p-4 rounded-3xl bg-pastel-mint/35 border border-pastel-mint-dark text-[#1C4D32] flex flex-col sm:flex-row items-center justify-between gap-3 animate-fade-in shadow-xs">
-              <div className="flex items-center gap-3">
-                <CheckCircle2 className="w-5 h-5 text-success flex-shrink-0" />
-                <div>
-                  <div className="text-xs font-black uppercase tracking-wider text-success-dark">
-                    {submitConfirmed ? 'Answer Locked In' : submitting ? 'Submitting Answer...' : 'Answer Recorded'}
-                  </div>
-                  <div className="text-xs text-bappa-secondary">
-                    {submitError || 'Waiting for round to end and results to reveal...'}
-                  </div>
-                </div>
+            <div className="p-4 rounded-3xl bg-pastel-mint/35 border border-pastel-mint-dark flex items-center justify-between">
+              <div className="flex items-center gap-2.5 text-xs sm:text-sm font-bold text-[#1C4D32]">
+                <CheckCircle2 className="w-5 h-5 text-success" />
+                <span>Answer registered! Waiting for timer and answers reveal...</span>
               </div>
-              {submitError ? (
-                <button
-                  type="button"
-                  onClick={() => handleAnswerSubmit(submittedAnswer)}
-                  className="px-3.5 py-1.5 bg-pastel-pink text-error border border-pastel-pink-dark text-xs font-black rounded-xl hover:opacity-95 transition-all flex items-center gap-1.5 shadow-xs"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" /> Retry
-                </button>
-              ) : (
-                <div className="flex items-center gap-1.5 text-xs text-primary font-bold animate-pulse">
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>Waiting for host</span>
-                </div>
-              )}
+              <span className="text-xs text-bappa-muted font-bold">{timeLeft}s left</span>
             </div>
           )}
 
@@ -623,7 +722,9 @@ export default function PlayerQuizPage() {
                       </div>
                       <div className="text-xs opacity-90 font-medium">
                         {answerResult.correct
-                          ? `You earned +${answerResult.points} points!`
+                          ? `You earned +${answerResult.points} points!${
+                              answerResult.timeTaken ? ` (⚡ Fast answer in ${answerResult.timeTaken}s)` : ''
+                            }`
                           : 'Check the authentic verse reference below.'}
                       </div>
                     </div>

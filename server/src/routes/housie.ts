@@ -129,10 +129,14 @@ router.post('/join', authMiddleware, async (req: Request, res: Response) => {
 // Helper to look up Housie game by either Mongo ObjectId or 6-character roomCode
 async function findHousieGameByIdOrCode(identifier: string) {
   if (identifier && identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier)) {
-    const g = await HousieGame.findById(identifier).populate('hostId', 'name username');
+    const g = await HousieGame.findById(identifier)
+      .populate('hostId', 'name username')
+      .populate('winners.playerId', 'name username');
     if (g) return g;
   }
-  return await HousieGame.findOne({ roomCode: identifier?.toUpperCase() }).populate('hostId', 'name username');
+  return await HousieGame.findOne({ roomCode: identifier?.toUpperCase() })
+    .populate('hostId', 'name username')
+    .populate('winners.playerId', 'name username');
 }
 
 // GET /api/housie/:gameId
@@ -451,11 +455,15 @@ router.post(
       claim.approvedBy = new mongoose.Types.ObjectId(host.userId);
       await claim.save();
 
+      const player = await User.findById(claim.playerId);
+      const playerName = player?.name || 'A player';
+
       // Update game winners
       await HousieGame.findByIdAndUpdate(claim.gameId, {
         $push: {
           winners: {
             playerId: claim.playerId,
+            playerName,
             pattern: claim.pattern,
             claimId: claim._id,
             approvedAt: new Date(),

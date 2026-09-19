@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Wifi, WifiOff, Trophy, AlertCircle, CheckCircle, Clock, Volume2, VolumeX, Sparkles, Hand, Ticket } from 'lucide-react';
+import { Users, Wifi, WifiOff, Trophy, AlertCircle, CheckCircle, Clock, Volume2, VolumeX, Sparkles, Hand, Ticket, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { getSocket } from '@/lib/socket';
 import { housieApi } from '@/lib/api';
@@ -107,6 +108,9 @@ export default function HousieGamePage() {
   const [claimStatus, setClaimStatus] = useState<Record<string, 'idle' | 'pending' | 'approved' | 'rejected'>>({});
   const [completedPatterns, setCompletedPatterns] = useState<string[]>([]);
   const [newNumberAnim, setNewNumberAnim] = useState(false);
+  const [winners, setWinners] = useState<
+    Array<{ pattern: string; playerName?: string; playerId?: string; approvedAt?: string }>
+  >([]);
   
   // Exclusive Winner Celebration Modal state (only for current winner, only once)
   const [myWinCelebration, setMyWinCelebration] = useState<{ pattern: string } | null>(null);
@@ -140,6 +144,16 @@ export default function HousieGamePage() {
           setLastNumber(g.calledNumbers[g.calledNumbers.length - 1]);
         }
         setPlayerCount(gameRes.data.playerCount || 0);
+        if (g.winners && Array.isArray(g.winners)) {
+          setWinners(
+            g.winners.map((w: any) => ({
+              pattern: w.pattern,
+              playerName: w.playerName || (typeof w.playerId === 'object' && w.playerId ? w.playerId.name : 'A player'),
+              playerId: typeof w.playerId === 'object' && w.playerId ? w.playerId._id : w.playerId,
+              approvedAt: w.approvedAt,
+            }))
+          );
+        }
 
         try {
           const ticketRes = await housieApi.getMyTicket(gameId);
@@ -199,6 +213,16 @@ export default function HousieGamePage() {
           setMarkedNumbers(new Set(data.ticket.markedNumbers));
         }
       }
+      if (data.game?.winners && Array.isArray(data.game.winners)) {
+        setWinners(
+          data.game.winners.map((w: any) => ({
+            pattern: w.pattern,
+            playerName: w.playerName || (typeof w.playerId === 'object' && w.playerId ? w.playerId.name : 'A player'),
+            playerId: typeof w.playerId === 'object' && w.playerId ? w.playerId._id : w.playerId,
+            approvedAt: w.approvedAt,
+          }))
+        );
+      }
       setCalledNumbers(data.calledNumbers || data.game?.calledNumbers || []);
       setPlayerCount(data.playerCount || 0);
       if (data.calledNumbers?.length) {
@@ -255,6 +279,19 @@ export default function HousieGamePage() {
 
     const handleWinnerApproved = (data: any) => {
       setClaimStatus((prev) => ({ ...prev, [data.pattern]: 'approved' }));
+      setWinners((prev) => {
+        const filtered = prev.filter((w) => w.pattern !== data.pattern);
+        return [
+          ...filtered,
+          {
+            pattern: data.pattern,
+            playerName: data.playerName || 'A player',
+            playerId: data.playerId,
+            approvedAt: new Date().toISOString(),
+          },
+        ];
+      });
+
       const currentUserId = (user as any)?.id || (user as any)?._id;
       const isWinner = Boolean(
         (data.playerId && currentUserId && String(data.playerId) === String(currentUserId)) ||
@@ -440,12 +477,22 @@ export default function HousieGamePage() {
     <div className="min-h-screen bg-background pb-12">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-surface border-b border-bappa-border shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div>
-            <div className="font-bold text-bappa-text">{game?.name}</div>
-            <div className="text-xs text-bappa-muted">Room: <span className="font-mono font-bold text-primary">{game?.roomCode}</span></div>
-          </div>
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
+            <Link
+              href="/dashboard/housie"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-bappa-muted hover:text-bappa-text px-2.5 py-1.5 rounded-xl bg-surface-secondary border border-bappa-border hover:border-primary transition-all"
+              title="Return to Housie Lounge"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Back</span>
+            </Link>
+            <div>
+              <div className="font-bold text-bappa-text text-sm sm:text-base leading-tight">{game?.name}</div>
+              <div className="text-xs text-bappa-muted">Room: <span className="font-mono font-bold text-primary">{game?.roomCode}</span></div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
               title={soundEnabled ? 'Mute sounds' : 'Enable sounds'}
@@ -453,21 +500,29 @@ export default function HousieGamePage() {
             >
               {soundEnabled ? <Volume2 className="w-4 h-4 text-primary" /> : <VolumeX className="w-4 h-4" />}
             </button>
-            <div className="flex items-center gap-1 text-sm text-bappa-muted">
-              <Users className="w-4 h-4" />
-              {playerCount}
+            <div className="flex items-center gap-1 text-xs sm:text-sm text-bappa-muted font-bold px-2 py-1 rounded-lg bg-surface-secondary border border-bappa-border" title={`${playerCount} players joined this room`}>
+              <Users className="w-3.5 h-3.5 text-primary" />
+              <span>{playerCount} joined</span>
             </div>
-            <div className={`flex items-center gap-1 text-xs font-medium ${connected ? 'text-success' : 'text-error'}`}>
-              {connected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
-              {connected ? 'Live' : 'Reconnecting…'}
-            </div>
-            <span className={`badge text-xs px-2 py-0.5 rounded-full font-semibold ${
-              game?.status === 'started' ? 'bg-primary-light text-primary' :
-              game?.status === 'paused' ? 'bg-gold-light text-gold-dark' :
-              game?.status === 'completed' ? 'bg-maroon-light text-maroon' :
-              'bg-bappa-border text-bappa-muted'
+            <div className={`flex items-center gap-1 text-xs font-bold ${
+              game?.status === 'completed' || (game as any)?.status === 'ended'
+                ? 'text-bappa-muted'
+                : connected ? 'text-emerald-700' : 'text-rose-600'
             }`}>
-              {game?.status}
+              {connected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+              <span>
+                {game?.status === 'completed' || (game as any)?.status === 'ended'
+                  ? 'Game Ended'
+                  : connected ? 'Live' : 'Reconnecting…'}
+              </span>
+            </div>
+            <span className={`text-xs px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider ${
+              game?.status === 'started' ? 'bg-pastel-mint text-emerald-950 border border-pastel-mint-dark' :
+              game?.status === 'paused' ? 'bg-pastel-yellow text-amber-950 border border-pastel-yellow-dark' :
+              game?.status === 'completed' || (game as any)?.status === 'ended' ? 'bg-surface-secondary text-bappa-muted border border-bappa-border' :
+              'bg-pastel-blue text-blue-950 border border-pastel-blue-dark'
+            }`}>
+              {game?.status === 'completed' || (game as any)?.status === 'ended' ? 'Finished' : game?.status}
             </span>
           </div>
         </div>
@@ -778,53 +833,99 @@ export default function HousieGamePage() {
               )}
             </div>
 
-            {/* Winning patterns + claim buttons */}
+            {/* Winning patterns + claim buttons + Live Winners Tracker */}
             {game?.activePatterns && game.activePatterns.length > 0 && (
-              <div className="card rounded-4xl border border-bappa-border p-6 bg-surface">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="font-black text-bappa-text text-base">Winning Patterns</div>
-                  <div className="text-xs text-bappa-muted font-medium">Claim prize when your lines are complete</div>
+              <div className="card rounded-4xl border border-bappa-border p-6 bg-surface shadow-card">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b border-bappa-border/60">
+                  <div>
+                    <div className="font-black text-bappa-text text-base flex items-center gap-2">
+                      <Trophy className="w-4 h-4 text-gold-dark" />
+                      <span>Winning Patterns & Live Scores</span>
+                    </div>
+                    <div className="text-xs text-bappa-muted font-medium mt-0.5">
+                      {winners.length} of {game.activePatterns.length} patterns claimed • {playerCount} players joined
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs px-2.5 py-1 rounded-xl bg-pastel-yellow/50 border border-pastel-yellow font-black text-amber-950">
+                      🏆 +50 pts per pattern
+                    </span>
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {game.activePatterns.map((pattern) => {
                     const isCompleted = completedPatterns.includes(pattern);
                     const claimSt = claimStatus[pattern] || 'idle';
+                    const winnerInfo = winners.find((w) => w.pattern === pattern);
+                    const currentUserId = (user as any)?.id || (user as any)?._id;
+                    const isMe = Boolean(
+                      (winnerInfo?.playerId && currentUserId && String(winnerInfo.playerId) === String(currentUserId)) ||
+                      (winnerInfo?.playerName && user?.name && winnerInfo.playerName.toLowerCase() === user.name.toLowerCase())
+                    );
 
                     return (
                       <div
                         key={pattern}
-                        className={`rounded-2xl p-3.5 border transition-all ${
-                          claimSt === 'approved'
-                            ? 'border-pastel-yellow-dark bg-pastel-yellow/40 text-[#5A4108]'
+                        className={`rounded-2xl p-4 border transition-all ${
+                          winnerInfo
+                            ? isMe
+                              ? 'border-pastel-yellow-dark bg-pastel-yellow/50 text-[#5A4108] shadow-xs ring-1 ring-pastel-yellow'
+                              : 'border-pastel-mint-dark bg-pastel-mint/40 text-[#1C4D32]'
+                            : claimSt === 'pending'
+                            ? 'border-pastel-blue-dark bg-pastel-blue/30 text-primary'
                             : isCompleted
-                            ? 'border-pastel-mint-dark bg-pastel-mint/40 text-[#1C4D32]'
-                            : 'border-bappa-border bg-surface-secondary/50'
+                            ? 'border-pastel-mint-dark bg-pastel-mint/35 text-[#1C4D32]'
+                            : 'border-bappa-border bg-surface-secondary/40'
                         }`}
                       >
-                        <div className="text-xs font-black text-bappa-text mb-2">
-                          {PATTERN_LABELS[pattern] || pattern}
+                        <div className="flex items-start justify-between gap-1 mb-2">
+                          <span className="text-xs font-black text-bappa-text">
+                            {PATTERN_LABELS[pattern] || pattern}
+                          </span>
+                          {winnerInfo ? (
+                            <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-white/90 text-amber-950 shadow-2xs border border-amber-200">
+                              Won
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/80 text-bappa-muted border border-bappa-border">
+                              Available
+                            </span>
+                          )}
                         </div>
-                        {claimSt === 'approved' ? (
-                          <div className="flex items-center gap-1 text-xs text-gold-dark font-black">
-                            <Trophy className="w-3.5 h-3.5" /> Claim Approved!
+
+                        {winnerInfo ? (
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-1.5 text-xs font-black">
+                              <Trophy className="w-3.5 h-3.5 text-gold-dark flex-shrink-0" />
+                              <span className="truncate">
+                                {isMe ? '👑 You Won!' : `Won by ${winnerInfo.playerName || 'Player'}`}
+                              </span>
+                            </div>
+                            <div className="text-[11px] font-bold text-emerald-800">
+                              +50 festival points scored
+                            </div>
                           </div>
                         ) : claimSt === 'pending' ? (
-                          <div className="text-xs text-primary font-bold animate-pulse">
-                            Host Verifying…
+                          <div className="text-xs text-primary font-bold animate-pulse flex items-center gap-1">
+                            <Sparkles className="w-3.5 h-3.5" /> Host Verifying…
                           </div>
                         ) : claimSt === 'rejected' ? (
-                          <div className="text-xs text-error font-bold">Claim Rejected</div>
+                          <div className="text-xs text-error font-bold">Claim was not approved</div>
                         ) : isCompleted ? (
                           <button
                             type="button"
                             onClick={() => claimWin(pattern)}
-                            className="btn-mint btn-sm w-full text-xs py-2 shadow-xs hover:shadow"
+                            className="btn-mint btn-sm w-full text-xs py-2 shadow-xs hover:shadow font-black"
                           >
-                            Claim Win!
+                            Claim Win! (+50 pts)
                           </button>
                         ) : (
-                          <div className="flex items-center gap-1 text-xs text-bappa-muted">
-                            <Clock className="w-3 h-3" /> In Progress
+                          <div className="flex items-center justify-between text-xs text-bappa-muted">
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" /> Unclaimed
+                            </span>
+                            <span className="font-mono text-[11px] font-bold text-primary">50 pts</span>
                           </div>
                         )}
                       </div>

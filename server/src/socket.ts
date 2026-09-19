@@ -13,8 +13,12 @@ interface AuthenticatedSocket extends Socket {
 const autoCallTimers = new Map<string, NodeJS.Timeout>();
 // Track online players per game: gameId -> Set<userId>
 const onlinePlayersPerGame = new Map<string, Set<string>>();
+// Track online players per quiz: quizId -> Set<userId>
+const onlinePlayersPerQuiz = new Map<string, Set<string>>();
 // Track synchronized question timers per quiz: quizId -> Timeout
 const quizTimers = new Map<string, NodeJS.Timeout>();
+// Track real-time answers per quiz question: `${quizId}:${questionId}` -> { answered: Set<string>; correct: Set<string>; incorrect: Set<string> }
+const quizQuestionStats = new Map<string, { answered: Set<string>; correct: Set<string>; incorrect: Set<string> }>();
 
 export function initSocket(io: Server): void {
   // ─── Authentication Middleware ─────────────────────────────────────────────
@@ -438,11 +442,15 @@ export function initSocket(io: Server): void {
         claim.approvedAt = new Date();
         await claim.save();
 
+        const player = await User.findById(claim.playerId);
+        const playerName = player?.name || 'A player';
+
         // Update game winners
         await HousieGame.findByIdAndUpdate(claim.gameId, {
           $push: {
             winners: {
               playerId: claim.playerId,
+              playerName,
               pattern: claim.pattern,
               claimId: claim._id,
               approvedAt: new Date(),
@@ -456,11 +464,10 @@ export function initSocket(io: Server): void {
         });
 
         const gameId = claim.gameId.toString();
-        const player = await User.findById(claim.playerId);
         io.to(`game:${gameId}`).emit('winner-approved', {
           claimId,
           playerId: claim.playerId.toString(),
-          playerName: player?.name || 'A player',
+          playerName,
           pattern: claim.pattern,
         });
       } catch (err) {
@@ -574,6 +581,16 @@ export function initSocket(io: Server): void {
           }
         }
 
+        const qIdStr = quiz._id.toString();
+        if (!onlinePlayersPerQuiz.has(qIdStr)) {
+          onlinePlayersPerQuiz.set(qIdStr, new Set());
+        }
+        onlinePlayersPerQuiz.get(qIdStr)!.add(authedSocket.user.userId);
+        const activePlayerCount = onlinePlayersPerQuiz.get(qIdStr)!.size;
+
+        const currentQStatKey = currentQ ? `${qIdStr}:${currentQ._id.toString()}` : null;
+        const currentQStats = currentQStatKey ? quizQuestionStats.get(currentQStatKey) : null;
+
         authedSocket.emit('quiz:state', {
           quiz,
           currentQuestionIndex: quiz.currentQuestionIndex || 0,
@@ -583,15 +600,20 @@ export function initSocket(io: Server): void {
           activeQuestionId: currentQ?._id,
           timeLimit: currentQ?.timeLimit || 25,
           startedAt: quiz.startedAt ? new Date(quiz.startedAt).getTime() : Date.now(),
+          playerCount: activePlayerCount,
+          answeredCount: currentQStats?.answered.size || 0,
         });
 
         // Notify room of player join
         const joinInfo = {
           userId: authedSocket.user.userId,
           name: authedSocket.user.name,
+          playerCount: activePlayerCount,
         };
         io.to(roomKey).emit('quiz:player_joined', joinInfo);
-        io.to(`quiz:${quiz.roomId}`).emit('quiz:player_joined', joinInfo);
+        if (quiz.roomId) {
+          io.to(`quiz:${quiz.roomId}`).emit('quiz:player_joined', joinInfo);
+        }
       } catch (err) {
         console.error('[Socket] join-quiz error:', err);
       }
@@ -720,7 +742,12 @@ export function initSocket(io: Server): void {
           if (quizTimers.has(qTimerKey)) {
             clearTimeout(quizTimers.get(qTimerKey)!);
           }
+          const startQStatKey = `${quiz._id.toString()}:${firstQ._id.toString()}`;
+          quizQuestionStats.set(startQStatKey, { answered: new Set(), correct: new Set(), incorrect: new Set() });
+
           const timer = setTimeout(() => {
+            const stats = quizQuestionStats.get(startQStatKey) || { answered: new Set(), correct: new Set(), incorrect: new Set() };
+            const qRoomPlayers = onlinePlayersPerQuiz.get(quiz!._id.toString())?.size || io.sockets.adapter.rooms.get(`quiz:${quiz!._id}`)?.size || 1;
             const endPayload = {
               quizId: quiz!._id.toString(),
               roomId: quiz!.roomId,
@@ -730,6 +757,10 @@ export function initSocket(io: Server): void {
               sourceAarti: firstQ.sourceAarti,
               sourceLine: firstQ.sourceLine,
               explanation: firstQ.explanation,
+              answeredCount: stats.answered.size,
+              correctCount: stats.correct.size,
+              incorrectCount: stats.incorrect.size,
+              totalPlayers: qRoomPlayers,
             };
             io.to(`quiz:${quiz!._id}`).emit('quiz:question_ended', endPayload);
             io.to(`quiz:${quiz!.roomId}`).emit('quiz:question_ended', endPayload);
@@ -812,7 +843,12 @@ export function initSocket(io: Server): void {
         io.to(`quiz:${quiz.roomId}`).emit('quiz:next_question', questionPayload);
 
         // Synchronized question timer
+        const nextQStatKey = `${quiz._id.toString()}:${nextQ._id.toString()}`;
+        quizQuestionStats.set(nextQStatKey, { answered: new Set(), correct: new Set(), incorrect: new Set() });
+
         const timer = setTimeout(() => {
+          const stats = quizQuestionStats.get(nextQStatKey) || { answered: new Set(), correct: new Set(), incorrect: new Set() };
+          const qRoomPlayers = onlinePlayersPerQuiz.get(quiz!._id.toString())?.size || io.sockets.adapter.rooms.get(`quiz:${quiz!._id}`)?.size || 1;
           const endPayload = {
             quizId: quiz!._id.toString(),
             roomId: quiz!.roomId,
@@ -822,6 +858,10 @@ export function initSocket(io: Server): void {
             sourceAarti: nextQ.sourceAarti,
             sourceLine: nextQ.sourceLine,
             explanation: nextQ.explanation,
+            answeredCount: stats.answered.size,
+            correctCount: stats.correct.size,
+            incorrectCount: stats.incorrect.size,
+            totalPlayers: qRoomPlayers,
           };
           io.to(`quiz:${quiz!._id}`).emit('quiz:question_ended', endPayload);
           io.to(`quiz:${quiz!.roomId}`).emit('quiz:question_ended', endPayload);
@@ -857,6 +897,10 @@ export function initSocket(io: Server): void {
         const question = await QuizQuestion.findById(questionId);
         if (!question) return;
 
+        const statKey = `${qTimerKey}:${questionId}`;
+        const stats = quizQuestionStats.get(statKey) || { answered: new Set(), correct: new Set(), incorrect: new Set() };
+        const qRoomPlayers = onlinePlayersPerQuiz.get(qTimerKey)?.size || io.sockets.adapter.rooms.get(`quiz:${qTimerKey}`)?.size || 1;
+
         const endPayload = {
           quizId: quiz ? quiz._id.toString() : quizId,
           roomId: quiz?.roomId,
@@ -866,6 +910,10 @@ export function initSocket(io: Server): void {
           sourceAarti: question.sourceAarti,
           sourceLine: question.sourceLine,
           explanation: question.explanation,
+          answeredCount: stats.answered.size,
+          correctCount: stats.correct.size,
+          incorrectCount: stats.incorrect.size,
+          totalPlayers: qRoomPlayers,
         };
 
         io.to(`quiz:${qTimerKey}`).emit('quiz:question_ended', endPayload);
@@ -929,22 +977,48 @@ export function initSocket(io: Server): void {
             break;
         }
 
+        const timeLimit = Math.max(question.timeLimit || 25, 5);
+        const validTime = Math.min(Math.max(Number(timeTaken) || 0, 0.2), timeLimit);
         let points = 0;
+        let speedMultiplier = 0;
+
         if (isCorrect) {
-          points = question.points || 10;
-          if (timeTaken <= (question.timeLimit || 25) / 2) {
-            points += 5; // Fast response bonus
-          }
+          // Kahoot dynamic speed-based scoring:
+          // Max points is 1,000 (or question.points * 100).
+          // Multiplier = 1 - ((timeTaken / timeLimit) / 2)
+          // Instant answer gets 100% of max points; answer at last second gets 50% of max points.
+          const maxPoints = (question.points && question.points >= 100) ? question.points : ((question.points || 10) * 100);
+          speedMultiplier = Math.max(0.5, Math.round((1 - ((validTime / timeLimit) / 2)) * 100) / 100);
+          points = Math.max(Math.round(maxPoints * speedMultiplier), 50);
+
           await User.findByIdAndUpdate(authedSocket.user.userId, {
             $inc: { totalPoints: points },
           });
         }
+
+        const quizIdStr = quiz ? quiz._id.toString() : (quizId || '');
+        const qStatKey = `${quizIdStr}:${questionId}`;
+        let qStats = quizQuestionStats.get(qStatKey);
+        if (!qStats) {
+          qStats = { answered: new Set(), correct: new Set(), incorrect: new Set() };
+          quizQuestionStats.set(qStatKey, qStats);
+        }
+        qStats.answered.add(authedSocket.user.userId);
+        if (isCorrect) {
+          qStats.correct.add(authedSocket.user.userId);
+        } else {
+          qStats.incorrect.add(authedSocket.user.userId);
+        }
+
+        const totalRoomPlayers = onlinePlayersPerQuiz.get(quizIdStr)?.size || io.sockets.adapter.rooms.get(`quiz:${quizIdStr}`)?.size || 1;
 
         // Return individual result to player
         authedSocket.emit('player:answer_result', {
           questionId,
           correct: isCorrect,
           points,
+          timeTaken: Math.round(validTime * 10) / 10,
+          speedMultiplier,
           correctAnswer: question.correctAnswer || question.correctOrder || question.incorrectWord,
           correctWord: question.correctWord,
           sourceAarti: question.sourceAarti,
@@ -952,13 +1026,14 @@ export function initSocket(io: Server): void {
           explanation: question.explanation,
         });
 
-        // Broadcast to host that player answered
+        // Broadcast to host and other players that a player answered
         const targetRoom = quiz ? `quiz:${quiz._id}` : `quiz:${quizId}`;
         const answerBroadcast = {
           userId: authedSocket.user.userId,
           name: authedSocket.user.name,
-          correct: isCorrect,
           questionId,
+          answeredCount: qStats.answered.size,
+          totalPlayers: totalRoomPlayers,
         };
         io.to(targetRoom).emit('quiz:player_answered', answerBroadcast);
         if (quiz?.roomId) {
@@ -972,13 +1047,25 @@ export function initSocket(io: Server): void {
 
     // ─── Disconnect ───────────────────────────────────────────────────────────
     authedSocket.on('disconnect', () => {
-      // Remove from all online tracking
+      // Remove from all Housie online tracking
       for (const [gameId, players] of onlinePlayersPerGame.entries()) {
         if (players.has(authedSocket.user.userId)) {
           players.delete(authedSocket.user.userId);
           io.to(`game:${gameId}`).emit('player-left', {
             userId: authedSocket.user.userId,
             name: authedSocket.user.name,
+          });
+        }
+      }
+
+      // Remove from all Quiz online tracking
+      for (const [qId, players] of onlinePlayersPerQuiz.entries()) {
+        if (players.has(authedSocket.user.userId)) {
+          players.delete(authedSocket.user.userId);
+          io.to(`quiz:${qId}`).emit('quiz:player_left', {
+            userId: authedSocket.user.userId,
+            name: authedSocket.user.name,
+            playerCount: players.size,
           });
         }
       }

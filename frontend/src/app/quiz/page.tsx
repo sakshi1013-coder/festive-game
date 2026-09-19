@@ -21,7 +21,16 @@ export default function JoinQuizLandingPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto py-10 sm:py-16 px-4 space-y-6 page-transition text-center">
+    <div className="max-w-md mx-auto py-8 sm:py-12 px-4 space-y-6 page-transition text-center">
+      <div className="flex justify-start">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-xs font-black text-bappa-muted hover:text-bappa-text px-3 py-1.5 rounded-xl bg-white border border-bappa-border hover:border-primary transition-all shadow-2xs"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 text-primary" /> Back to Dashboard
+        </Link>
+      </div>
+
       <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-3xl bg-pastel-lavender text-primary flex items-center justify-center shadow-xs border border-pastel-lavender-dark">
         <BookOpen className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
       </div>
