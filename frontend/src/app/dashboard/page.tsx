@@ -96,7 +96,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Live Aarti Quiz */}
         <Link
           href="/quiz"
@@ -114,25 +114,6 @@ export default function DashboardPage() {
             </div>
             <div className="text-bappa-muted text-xs line-clamp-1 mt-0.5">
               Enter room code to join live game
-            </div>
-          </div>
-          <Play className="w-4 h-4 text-primary ml-auto flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-        </Link>
-
-        {/* Practice Quiz */}
-        <Link
-          href="/dashboard/quiz"
-          className="card-hover group p-5 rounded-2xl flex items-center gap-4 transition-all"
-        >
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-primary-light text-primary flex items-center justify-center flex-shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-            <BookOpen className="w-6 h-6 sm:w-7 sm:h-7" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="font-bold text-bappa-text text-base sm:text-lg truncate">
-              Practice Quiz
-            </div>
-            <div className="text-bappa-muted text-xs line-clamp-1 mt-0.5">
-              Festival trivia & sacred knowledge
             </div>
           </div>
           <Play className="w-4 h-4 text-primary ml-auto flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -218,9 +199,9 @@ export default function DashboardPage() {
           ) : (
             <div className="text-center py-8">
               <BookOpen className="w-10 h-10 text-primary/30 mx-auto mb-2" />
-              <p className="text-bappa-muted text-sm">No quizzes yet.</p>
-              <Link href="/dashboard/quiz" className="btn-primary btn-sm mt-3 inline-flex">
-                Play your first quiz
+              <p className="text-bappa-muted text-sm">No quizzes played yet.</p>
+              <Link href="/quiz" className="btn-primary btn-sm mt-3 inline-flex">
+                Join a Live Quiz
               </Link>
             </div>
           )}

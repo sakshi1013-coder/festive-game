@@ -644,8 +644,8 @@ export default function UnifiedQuizManagerPage() {
           {generatedQuiz && (
             <div className="space-y-6">
               {/* Header Action Bar */}
-              <div className="card bg-surface border-2 border-primary/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="space-y-2">
+              <div className="card bg-surface border-2 border-primary/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 overflow-hidden max-w-full">
+                <div className="space-y-2 min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="badge-saffron text-sm font-black tracking-wider px-3 py-1 font-mono">
                       Room Code: {generatedQuiz.roomId}
@@ -663,22 +663,24 @@ export default function UnifiedQuizManagerPage() {
                     <span className="badge-gold text-xs font-bold">{questions.length} Questions</span>
                     <span className="badge-success text-xs font-bold">Ready</span>
                   </div>
-                  <h2 className="text-2xl font-black text-bappa-text mt-1.5">
+                  <h2 className="text-2xl font-black text-bappa-text mt-1.5 truncate">
                     {generatedQuiz.title
                       ?.replace(/^Aarti Knowledge Quiz\s*\([^)]*\)/i, 'Ganapati Aarti Quiz')
                       .replace(/\([^)]*\)/g, '')
                       .trim() || 'Ganapati Aarti Quiz'}
                   </h2>
-                  <div className="text-xs text-bappa-muted mt-1">
-                    Source Aartis: {generatedQuiz.sourceAartis.join(' • ')}
+                  <div className="text-xs text-bappa-muted mt-1 flex items-center gap-2">
+                    <span className="font-semibold text-primary">{generatedQuiz.sourceAartis.length} Aartis Selected</span>
+                    <span>•</span>
+                    <span>Sacred Marathi Verses</span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2.5 w-full md:w-auto">
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 flex-shrink-0 w-full md:w-auto">
                   <button
                     type="button"
                     onClick={() => setGeneratedQuiz(null)}
-                    className="btn-outline btn-sm flex-1 md:flex-none flex items-center justify-center gap-1.5"
+                    className="btn-outline btn-sm flex items-center justify-center gap-1.5 whitespace-nowrap"
                   >
                     <RotateCcw className="w-4 h-4" /> Create New
                   </button>
@@ -686,7 +688,7 @@ export default function UnifiedQuizManagerPage() {
                   <button
                     type="button"
                     onClick={handleStartLiveQuiz}
-                    className="btn-primary btn-sm flex-1 md:flex-none shadow-saffron flex items-center justify-center gap-2 font-black px-6"
+                    className="btn-primary btn-sm shadow-saffron flex items-center justify-center gap-2 font-black px-5 whitespace-nowrap"
                   >
                     <Play className="w-4 h-4 fill-white" /> Start Live Quiz
                   </button>

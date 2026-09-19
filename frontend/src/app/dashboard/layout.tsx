@@ -12,7 +12,7 @@ import { useAuth } from '@/lib/auth';
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
-  { href: '/dashboard/quiz', label: 'Play Quiz', icon: BookOpen },
+  { href: '/quiz', label: 'Live Quiz', icon: Flame },
   { href: '/dashboard/housie', label: 'Join Housie', icon: Grid3X3 },
   { href: '/dashboard/wins', label: 'My Wins', icon: Trophy },
   { href: '/dashboard/history', label: 'Game History', icon: History },

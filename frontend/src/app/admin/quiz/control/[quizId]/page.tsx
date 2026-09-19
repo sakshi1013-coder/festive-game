@@ -318,12 +318,11 @@ export default function HostQuizControlPage() {
               {cleanTitle}
             </h1>
             <div className="flex flex-wrap items-center gap-2 text-xs text-white/90">
-              <span className="font-semibold">Source Aartis:</span>
-              {quiz.sourceAartis.map((art) => (
-                <span key={art} className="bg-white/15 px-2 py-0.5 rounded-md font-medium">
-                  {art}
-                </span>
-              ))}
+              <span className="font-semibold bg-white/15 px-2.5 py-0.5 rounded-md">
+                {quiz.sourceAartis.length} Sacred Aartis Included
+              </span>
+              <span>•</span>
+              <span>Authoritative Live Host Session</span>
             </div>
           </div>
         </div>
