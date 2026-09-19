@@ -51,18 +51,18 @@ export default function MatchLinesPlayer({
   const allPaired = leftItems.every((l) => matches[l]);
 
   return (
-    <div className="space-y-6">
-      <div className="p-3.5 bg-surface-secondary rounded-xl border border-bappa-border text-center">
-        <p className="text-xs text-bappa-muted font-medium flex items-center justify-center gap-1.5">
+    <div className="space-y-3 sm:space-y-4">
+      <div className="p-2 px-3 bg-pastel-blue/30 rounded-2xl border border-pastel-blue/60 text-center">
+        <p className="text-[11px] sm:text-xs text-bappa-muted font-bold flex items-center justify-center gap-1.5">
           <Link2 className="w-3.5 h-3.5 text-primary flex-shrink-0" />
-          <span><strong>Instruction:</strong> Click a verse line on the left, then select its matching continuation on the right.</span>
+          <span>Click a line on the left, then click its continuation on the right.</span>
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
         {/* Left Column (Beginnings) */}
-        <div className="space-y-3">
-          <div className="text-xs font-bold text-primary px-1">First Half (Part 1):</div>
+        <div className="space-y-2">
+          <div className="text-[11px] font-black text-primary uppercase tracking-wider px-1">First Half (Part 1):</div>
           {leftItems.map((left, idx) => {
             const isSelected = selectedLeft === left;
             const pairedRight = matches[left];
@@ -74,17 +74,17 @@ export default function MatchLinesPlayer({
                 whileTap={{ scale: 0.98 }}
                 onClick={() => handleLeftClick(left)}
                 disabled={disabled || revealed}
-                className={`w-full p-4 rounded-xl text-left font-bold text-sm sm:text-base border-2 transition-all ${
+                className={`w-full p-2.5 sm:p-3 rounded-2xl text-left font-bold text-xs sm:text-sm border-2 transition-all ${
                   isSelected
-                    ? 'border-primary bg-primary-light text-primary shadow-saffron'
+                    ? 'border-primary bg-pastel-blue/60 text-bappa-text shadow-xs ring-2 ring-primary/40'
                     : pairedRight
-                    ? 'border-gold bg-gold-light text-gold-dark'
-                    : 'border-bappa-border bg-surface hover:border-primary'
+                    ? 'border-pastel-mint-dark bg-pastel-mint/60 text-emerald-950 font-black'
+                    : 'border-pastel-border bg-white hover:border-primary/60'
                 }`}
               >
-                <div className="text-bappa-text font-black mb-1">{left}</div>
+                <div className="text-bappa-text font-black leading-snug">{left}</div>
                 {pairedRight && (
-                  <div className="text-xs text-primary font-medium flex items-center gap-1">
+                  <div className="text-[11px] text-emerald-800 font-bold flex items-center gap-1 mt-0.5">
                     <Link2 className="w-3 h-3" /> {pairedRight}
                   </div>
                 )}
@@ -94,8 +94,8 @@ export default function MatchLinesPlayer({
         </div>
 
         {/* Right Column (Continuations) */}
-        <div className="space-y-3">
-          <div className="text-xs font-bold text-primary px-1">Second Half (Part 2):</div>
+        <div className="space-y-2">
+          <div className="text-[11px] font-black text-primary uppercase tracking-wider px-1">Second Half (Part 2):</div>
           {rightItems.map((right, idx) => {
             const isAssigned = Object.values(matches).includes(right);
 
@@ -106,15 +106,15 @@ export default function MatchLinesPlayer({
                 whileTap={{ scale: 0.98 }}
                 onClick={() => handleRightClick(right)}
                 disabled={disabled || revealed || !selectedLeft}
-                className={`w-full p-4 rounded-xl text-left font-bold text-sm sm:text-base border-2 transition-all ${
+                className={`w-full p-2.5 sm:p-3 rounded-2xl text-left font-bold text-xs sm:text-sm border-2 transition-all ${
                   isAssigned
-                    ? 'border-gold/60 bg-surface-secondary text-bappa-text opacity-70'
+                    ? 'border-pastel-border/60 bg-pastel-surface/80 text-bappa-muted opacity-60'
                     : selectedLeft
-                    ? 'border-primary/50 bg-surface hover:border-primary hover:bg-primary-light animate-pulse'
-                    : 'border-bappa-border bg-surface'
+                    ? 'border-primary bg-pastel-blue/30 text-bappa-text hover:border-primary ring-1 ring-primary animate-pulse'
+                    : 'border-pastel-border bg-white'
                 }`}
               >
-                <div className="text-bappa-text font-black">{right}</div>
+                <div className="text-bappa-text font-black leading-snug">{right}</div>
               </motion.button>
             );
           })}
@@ -126,9 +126,9 @@ export default function MatchLinesPlayer({
           type="button"
           onClick={handleConfirmSubmit}
           disabled={disabled || submitted || !allPaired}
-          className="btn-primary w-full shadow-saffron py-3.5 flex items-center justify-center gap-2 text-sm sm:text-base font-bold disabled:opacity-50"
+          className="btn-primary w-full py-2.5 sm:py-3 rounded-2xl flex items-center justify-center gap-2 text-xs sm:text-sm font-black shadow-pastel-sm disabled:opacity-40"
         >
-          <Send className="w-4 h-4" /> Submit Matches ({Object.keys(matches).length}/{leftItems.length})
+          <Send className="w-3.5 h-3.5" /> Submit Matches ({Object.keys(matches).length}/{leftItems.length})
         </button>
       )}
     </div>

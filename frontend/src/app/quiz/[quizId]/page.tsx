@@ -499,112 +499,115 @@ export default function PlayerQuizPage() {
   const timerPercentage = Math.max(0, (timeLeft / maxTimer) * 100);
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6 pb-20 page-transition">
-      {/* Top Back & Multiplayer Live Stats Banner */}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <Link
-          href="/quiz"
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-bappa-muted hover:text-bappa-text px-3 py-1.5 rounded-xl bg-white border border-bappa-border hover:border-primary transition-all shadow-2xs"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" /> Back to Quizzes
-        </Link>
-        <div className="flex items-center gap-2">
-          <div className="inline-flex items-center gap-1 text-xs font-black px-2.5 py-1 rounded-xl bg-pastel-blue/40 border border-pastel-blue text-[#204068]">
-            <Users className="w-3.5 h-3.5 text-primary" />
-            <span>{playerCount} in Room</span>
-          </div>
-          <div className="inline-flex items-center gap-1 text-xs font-black px-2.5 py-1 rounded-xl bg-pastel-mint/50 border border-pastel-mint text-[#1C4D32]">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-800" />
-            <span>⚡ {answeredCount} / {playerCount} Answered</span>
-          </div>
-        </div>
-      </div>
-      {/* Top Header with Q Number, Timer, and Score */}
-      <div className="card shadow-card border border-bappa-border p-4 sm:p-5 flex items-center justify-between gap-4 rounded-3xl bg-surface">
-        {/* Question Counter */}
-        <div className="flex items-center gap-3">
-          <span className="w-10 h-10 rounded-2xl bg-pastel-lavender text-primary font-black flex items-center justify-center text-base shadow-xs border border-pastel-lavender-dark">
-            {currentIndex + 1}
-          </span>
-          <div>
-            <div className="text-[11px] font-black text-bappa-muted uppercase tracking-wider">
-              Question {currentIndex + 1} of {quiz.totalQuestions}
-            </div>
-            <div className="text-xs font-bold text-bappa-text truncate max-w-[150px] sm:max-w-xs">
-              Ganapati Aarti Quiz
+    <div className="max-w-4xl mx-auto space-y-3 pb-8 page-transition">
+      {/* ─── SINGLE CONSOLIDATED TOP GAME BAR ─── */}
+      <div className="bg-white rounded-3xl border border-pastel-border/80 shadow-pastel-sm p-3.5 sm:p-4 relative overflow-hidden">
+        <div className="flex items-center justify-between gap-3">
+          {/* Left: Back & Question Counter */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="/quiz"
+              className="inline-flex items-center gap-1 text-xs font-black text-bappa-muted hover:text-bappa-text px-2.5 py-1.5 rounded-xl bg-pastel-surface hover:bg-pastel-blue/40 transition-all border border-pastel-border shadow-2xs"
+              title="Back to Quizzes"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Quizzes</span>
+            </Link>
+
+            <div className="flex items-center gap-2">
+              <span className="w-8 h-8 rounded-xl bg-pastel-lavender text-primary font-black flex items-center justify-center text-xs sm:text-sm border border-pastel-lavender-dark shadow-xs">
+                {currentIndex + 1}
+              </span>
+              <div>
+                <div className="text-[10px] font-black text-bappa-muted uppercase tracking-wider">
+                  Question {currentIndex + 1} of {quiz.totalQuestions}
+                </div>
+                <div className="text-xs font-black text-bappa-text truncate max-w-[120px] sm:max-w-xs">
+                  Ganapati Aarti Quiz
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Live Timer Indicator */}
-        <div className="flex items-center gap-3">
-          <div
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-black text-xs sm:text-sm border transition-all ${
-              timeLeft <= 5 && timerActive
-                ? 'bg-pastel-pink text-error border-pastel-pink-dark animate-pulse'
-                : 'bg-pastel-blue/40 text-[#204068] border-pastel-blue'
-            }`}
-          >
-            <Timer className="w-4 h-4" />
-            <span>{timeLeft}s</span>
+          {/* Center: Live Timer */}
+          <div className="flex flex-col items-center justify-center">
+            <div
+              className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full font-black text-xs sm:text-sm border transition-all ${
+                timeLeft <= 5 && timerActive
+                  ? 'bg-pastel-pink text-error border-pastel-pink-dark animate-pulse shadow-xs'
+                  : 'bg-pastel-blue/50 text-[#204068] border-pastel-blue'
+              }`}
+            >
+              <Timer className="w-3.5 h-3.5" />
+              <span>{timeLeft}s</span>
+            </div>
           </div>
 
-          <div className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-pastel-yellow/40 text-bappa-text font-black text-xs border border-pastel-yellow">
-            <Trophy className="w-3.5 h-3.5 text-gold-dark" />
-            <span>{totalEarnedPoints} pts</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Dynamic Animated Timer Progress Bar */}
-      <div className="w-full bg-surface-secondary border border-bappa-border rounded-full h-2.5 overflow-hidden shadow-xs">
-        <motion.div
-          className={`h-full transition-all duration-300 ${
-            timeLeft <= 5 ? 'bg-pastel-pink-dark' : timeLeft <= 10 ? 'bg-pastel-yellow-dark' : 'bg-pastel-mint-dark'
-          }`}
-          style={{ width: `${timerPercentage}%` }}
-        />
-      </div>
-
-      {/* Real-time Answer Breakdown (Kahoot-Style) on Question Ended */}
-      {isRevealed && roundStats && (
-        <motion.div
-          initial={{ opacity: 0, y: -6 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="card border border-bappa-border p-4 rounded-3xl bg-surface shadow-xs flex flex-wrap items-center justify-between gap-3"
-        >
+          {/* Right: Players & Score */}
           <div className="flex items-center gap-2">
-            <span className="text-xs font-black text-bappa-text">🎯 Round Results:</span>
-            <span className="text-xs font-black text-emerald-900 bg-pastel-mint px-2.5 py-1 rounded-xl border border-pastel-mint-dark">
-              ✅ {roundStats.correctCount} Correct
-            </span>
-            <span className="text-xs font-black text-rose-900 bg-pastel-pink px-2.5 py-1 rounded-xl border border-pastel-pink-dark">
-              ❌ {roundStats.incorrectCount} Incorrect
-            </span>
+            <div className="hidden sm:flex items-center gap-1.5 text-xs font-black px-2.5 py-1 rounded-xl bg-pastel-blue/40 border border-pastel-blue text-[#204068]">
+              <Users className="w-3.5 h-3.5 text-primary" />
+              <span>{playerCount}</span>
+              <span className="text-bappa-muted font-normal">•</span>
+              <Sparkles className="w-3 h-3 text-emerald-800" />
+              <span>{answeredCount}/{playerCount}</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-pastel-yellow/50 text-bappa-text font-black text-xs border border-pastel-yellow shadow-xs">
+              <Trophy className="w-3.5 h-3.5 text-gold-dark" />
+              <span>{totalEarnedPoints} pts</span>
+            </div>
           </div>
-          <div className="text-xs text-bappa-muted font-bold">
-            {roundStats.answeredCount} of {roundStats.totalPlayers} answered
-          </div>
-        </motion.div>
-      )}
+        </div>
 
-      {/* Main Question Card */}
+        {/* Integrated Bottom Countdown Progress Line */}
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-pastel-surface">
+          <motion.div
+            className={`h-full transition-all duration-300 ${
+              timeLeft <= 5 ? 'bg-rose-500' : timeLeft <= 10 ? 'bg-amber-400' : 'bg-emerald-500'
+            }`}
+            style={{ width: `${timerPercentage}%` }}
+          />
+        </div>
+      </div>
+
+      {/* ─── SINGLE UNIFIED QUESTION CARD ─── */}
       {currentQuestion && (
-        <div className="card shadow-card-lg border border-bappa-border p-6 sm:p-8 space-y-6 relative rounded-4xl bg-surface">
-          {/* Question Type Tag */}
-          <div className="flex items-center justify-between">
-            <span className="badge-lavender text-xs font-black uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5 text-primary" />
-              {QUESTION_TYPE_LABELS[currentQuestion.type as keyof typeof QUESTION_TYPE_LABELS]?.label ||
-                currentQuestion.type}
-            </span>
-            <span className="text-xs font-bold text-bappa-muted">
-              Points: +{currentQuestion.points || 10}
-            </span>
+        <div className="bg-white rounded-3xl border border-pastel-border/80 shadow-pastel-sm p-4 sm:p-6 space-y-3 sm:space-y-4 relative">
+          {/* Header Row Inside Card: Type Badge + Points + Inline Round Breakdown */}
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-pastel-border/60 pb-3">
+            <div className="flex items-center gap-2">
+              <span className="badge-lavender text-xs font-black uppercase tracking-wider py-1 px-2.5">
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
+                {QUESTION_TYPE_LABELS[currentQuestion.type as keyof typeof QUESTION_TYPE_LABELS]?.label ||
+                  currentQuestion.type}
+              </span>
+              <span className="text-xs font-black text-emerald-900 bg-pastel-mint px-2.5 py-0.5 rounded-full border border-pastel-mint-dark">
+                +{currentQuestion.points || 10} pts
+              </span>
+            </div>
+
+            {/* Inline Round Results when revealed */}
+            {isRevealed && roundStats ? (
+              <div className="flex items-center gap-1.5 text-xs font-black">
+                <span className="text-emerald-900 bg-pastel-mint/80 px-2.5 py-0.5 rounded-lg border border-pastel-mint-dark">
+                  ✅ {roundStats.correctCount} Correct
+                </span>
+                <span className="text-rose-900 bg-pastel-pink/80 px-2.5 py-0.5 rounded-lg border border-pastel-pink-dark">
+                  ❌ {roundStats.incorrectCount} Incorrect
+                </span>
+                <span className="text-bappa-muted text-[11px] font-bold ml-1 hidden sm:inline">
+                  ({roundStats.answeredCount}/{roundStats.totalPlayers} answered)
+                </span>
+              </div>
+            ) : (
+              <div className="text-xs font-bold text-bappa-muted">
+                {quiz.title || 'Ganapati Aarti Quiz'}
+              </div>
+            )}
           </div>
 
           {/* Question Heading */}
-          <h2 className="text-xl sm:text-2xl font-black text-bappa-text leading-relaxed">
+          <h2 className="text-lg sm:text-xl font-black text-bappa-text leading-snug">
             {currentQuestion.question}
           </h2>
 
@@ -684,12 +687,12 @@ export default function PlayerQuizPage() {
 
           {/* Submission Status Indicator */}
           {hasSubmitted && !isRevealed && (
-            <div className="p-4 rounded-3xl bg-pastel-mint/35 border border-pastel-mint-dark flex items-center justify-between">
-              <div className="flex items-center gap-2.5 text-xs sm:text-sm font-bold text-[#1C4D32]">
-                <CheckCircle2 className="w-5 h-5 text-success" />
-                <span>Answer registered! Waiting for timer and answers reveal...</span>
+            <div className="p-2.5 sm:p-3 rounded-2xl bg-pastel-mint/40 border border-pastel-mint-dark flex items-center justify-between text-xs font-black text-[#1C4D32] shadow-2xs">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-700 flex-shrink-0" />
+                <span>Answer registered! Waiting for round timer to end…</span>
               </div>
-              <span className="text-xs text-bappa-muted font-bold">{timeLeft}s left</span>
+              <span className="text-emerald-800 font-bold">{timeLeft}s left</span>
             </div>
           )}
 
@@ -697,68 +700,72 @@ export default function PlayerQuizPage() {
           <AnimatePresence>
             {isRevealed && (
               <motion.div
-                initial={{ opacity: 0, y: 12 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="space-y-4 pt-4 border-t border-bappa-border"
+                className="space-y-2.5 pt-3 border-t border-pastel-border/60"
               >
                 {/* Result Feedback Banner */}
                 {answerResult && (
                   <div
-                    className={`p-4 sm:p-5 rounded-3xl border flex items-center gap-3.5 shadow-xs ${
+                    className={`p-3 sm:p-3.5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs ${
                       answerResult.correct
-                        ? 'bg-pastel-mint/35 border-pastel-mint-dark text-[#1C4D32]'
-                        : 'bg-pastel-pink/35 border-pastel-pink-dark text-[#782828]'
+                        ? 'bg-pastel-mint/50 border-pastel-mint-dark text-[#1C4D32]'
+                        : 'bg-pastel-pink/50 border-pastel-pink-dark text-[#782828]'
                     }`}
                   >
-                    {answerResult.correct ? (
-                      <CheckCircle2 className="w-6 h-6 text-success flex-shrink-0" />
-                    ) : (
-                      <XCircle className="w-6 h-6 text-error flex-shrink-0" />
-                    )}
-                    <div>
-                      <div className="font-black text-sm sm:text-base">
-                        {answerResult.correct ? 'Brilliant! Correct Answer!' : 'Time Expired or Incorrect Answer'}
+                    <div className="flex items-center gap-2.5">
+                      {answerResult.correct ? (
+                        <CheckCircle2 className="w-5 h-5 text-emerald-700 flex-shrink-0" />
+                      ) : (
+                        <XCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
+                      )}
+                      <div>
+                        <div className="font-black text-sm">
+                          {answerResult.correct ? 'Brilliant! Correct Answer!' : 'Time Expired or Incorrect Answer'}
+                        </div>
+                        <div className="text-[11px] font-bold opacity-90">
+                          {answerResult.correct
+                            ? `You earned +${answerResult.points} points!${
+                                answerResult.timeTaken ? ` (⚡ Fast answer in ${answerResult.timeTaken}s)` : ''
+                              }`
+                            : 'Check the authentic verse reference below.'}
+                        </div>
                       </div>
-                      <div className="text-xs opacity-90 font-medium">
-                        {answerResult.correct
-                          ? `You earned +${answerResult.points} points!${
-                              answerResult.timeTaken ? ` (⚡ Fast answer in ${answerResult.timeTaken}s)` : ''
-                            }`
-                          : 'Check the authentic verse reference below.'}
-                      </div>
+                    </div>
+
+                    {/* Waiting on Host Indicator */}
+                    <div className="flex items-center gap-1.5 text-[11px] font-black text-bappa-muted bg-white/80 px-2.5 py-1 rounded-xl shadow-2xs self-start sm:self-center">
+                      <RefreshCw className="w-3 h-3 animate-spin text-primary" />
+                      <span>Next question soon…</span>
                     </div>
                   </div>
                 )}
 
-                {/* Verified Source Aarti Reference */}
-                <div className="bg-pastel-lavender/30 border border-pastel-lavender rounded-3xl p-4 sm:p-5 space-y-2">
-                  <div className="flex items-center gap-2 text-primary font-black text-xs uppercase tracking-wider">
-                    <ShieldCheck className="w-4 h-4 text-primary" />
-                    <span>Authentic Verse Reference</span>
-                  </div>
-
-                  <div className="text-sm font-bold text-bappa-text">
-                    {answerResult?.sourceAarti || currentQuestion.sourceAarti}
+                {/* Verified Source Aarti Reference (compact) */}
+                <div className="bg-pastel-lavender/30 border border-pastel-lavender/80 rounded-2xl p-3 sm:p-3.5 space-y-1.5 text-xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-primary font-black text-[11px] uppercase tracking-wider">
+                      <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+                      <span>Authentic Verse Reference</span>
+                    </div>
+                    <div className="font-bold text-bappa-muted text-[11px]">
+                      {answerResult?.sourceAarti || currentQuestion.sourceAarti}
+                    </div>
                   </div>
 
                   {(answerResult?.sourceLine || currentQuestion.sourceLine) && (
-                    <div className="p-3.5 bg-surface border border-pastel-lavender-dark rounded-2xl text-primary font-black text-sm sm:text-base">
+                    <div className="p-2.5 bg-white border border-pastel-lavender rounded-xl text-primary font-black text-xs sm:text-sm">
                       "{answerResult?.sourceLine || currentQuestion.sourceLine}"
                     </div>
                   )}
 
                   {currentQuestion.explanation && (
-                    <div className="text-xs text-bappa-secondary pt-1 leading-relaxed">
+                    <div className="text-[11px] text-bappa-muted font-medium pt-0.5">
                       <span className="font-bold text-bappa-text">Meaning: </span>
                       {currentQuestion.explanation}
                     </div>
                   )}
-                </div>
-
-                <div className="flex items-center justify-center gap-2 text-xs font-bold text-bappa-muted pt-2 animate-pulse">
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-primary" />
-                  <span>Host is advancing to the next question...</span>
                 </div>
               </motion.div>
             )}

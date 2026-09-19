@@ -97,7 +97,7 @@ export default function StandardOptionsPlayer({
               whileTap={{ scale: disabled || revealed ? 1 : 0.98 }}
               onClick={() => handleSelect(option)}
               disabled={disabled || revealed}
-              className={`flex items-center justify-between p-4 sm:p-5 rounded-2xl text-left font-bold text-base transition-all duration-200 cursor-pointer ${cardStyle} ${disabled && !isSelected ? 'cursor-not-allowed' : ''}`}
+              className={`flex items-center justify-between p-3 sm:p-3.5 rounded-2xl text-left font-bold text-sm sm:text-base transition-all duration-200 cursor-pointer ${cardStyle} ${disabled && !isSelected ? 'cursor-not-allowed' : ''}`}
             >
               <div className="flex items-center gap-3 min-w-0">
                 <span
