@@ -1,15 +1,28 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000';
+export function getApiUrl(): string {
+  if (process.env.NEXT_PUBLIC_API_URL && !process.env.NEXT_PUBLIC_API_URL.includes('localhost')) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return 'https://festive-game.onrender.com';
+  }
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000';
+}
 
 export const api = axios.create({
-  baseURL: API_URL,
+  baseURL: getApiUrl(),
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Attach JWT token from localStorage on every request
+// Attach JWT token from localStorage on every request and ensure production URL on hosted deployments
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      if (!config.baseURL || config.baseURL.includes('localhost')) {
+        config.baseURL = 'https://festive-game.onrender.com';
+      }
+    }
     const token = localStorage.getItem('bappaverse_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

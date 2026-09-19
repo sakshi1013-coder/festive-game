@@ -295,31 +295,6 @@ export default function HousieGamePage() {
     });
   }, [gameId, claimStatus, game?.roomCode, ticket?._id, showFeedback]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-14 h-14 bg-maroon-light rounded-2xl flex items-center justify-center mx-auto mb-3">
-            <Ticket className="w-7 h-7 text-maroon animate-pulse" />
-          </div>
-          <p className="text-bappa-muted font-medium">Loading your ticket…</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="card text-center max-w-sm">
-          <AlertCircle className="w-12 h-12 text-error mx-auto mb-3" />
-          <p className="font-bold text-bappa-text">{error}</p>
-          <a href="/dashboard/housie" className="btn-outline mt-4 inline-flex">Back to Games</a>
-        </div>
-      </div>
-    );
-  }
-
   const calledSet = new Set(calledNumbers);
   const allTicketNumbers = ticket?.ticketGrid ? ticket.ticketGrid.flat().filter((n): n is number => n !== null) : [];
   const markedCount = allTicketNumbers.filter((n) => markedNumbers.has(n)).length;
@@ -388,6 +363,31 @@ export default function HousieGamePage() {
 
   const isLastNumberOnTicket = lastNumber ? allTicketNumbers.includes(lastNumber) : false;
   const isLastNumberMarked = lastNumber ? markedNumbers.has(lastNumber) : false;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-14 h-14 bg-maroon-light rounded-2xl flex items-center justify-center mx-auto mb-3">
+            <Ticket className="w-7 h-7 text-maroon animate-pulse" />
+          </div>
+          <p className="text-bappa-muted font-medium">Loading your ticket…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="card text-center max-w-sm">
+          <AlertCircle className="w-12 h-12 text-error mx-auto mb-3" />
+          <p className="font-bold text-bappa-text">{error}</p>
+          <a href="/dashboard/housie" className="btn-outline mt-4 inline-flex">Back to Games</a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-12">
@@ -644,7 +644,7 @@ export default function HousieGamePage() {
                 </div>
               </div>
 
-              {ticket ? (
+              {ticket && ticket.ticketGrid && Array.isArray(ticket.ticketGrid) ? (
                 <div className="ticket-grid">
                   {ticket.ticketGrid.map((row, ri) =>
                     row.map((cell, ci) => {

@@ -3,18 +3,27 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:10000';
+export function getSocketUrl(): string {
+  if (process.env.NEXT_PUBLIC_SOCKET_URL && !process.env.NEXT_PUBLIC_SOCKET_URL.includes('localhost')) {
+    return process.env.NEXT_PUBLIC_SOCKET_URL;
+  }
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return 'https://festive-game.onrender.com';
+  }
+  return process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:10000';
+}
 
 let socketInstance: Socket | null = null;
 let currentToken: string | null = null;
 
 export function getSocket(token: string): Socket {
+  const targetUrl = getSocketUrl();
   if (!socketInstance || currentToken !== token) {
     if (socketInstance) {
       socketInstance.disconnect();
     }
     currentToken = token;
-    socketInstance = io(SOCKET_URL, {
+    socketInstance = io(targetUrl, {
       auth: { token },
       transports: ['websocket', 'polling'],
       reconnection: true,
