@@ -10,6 +10,8 @@ import { housieApi } from '@/lib/api';
 import { HousieGame, HousieTicket, PATTERN_LABELS } from '@/types/index';
 import type { Socket } from 'socket.io-client';
 
+import confetti from 'canvas-confetti';
+
 // Simple synthesized audio effects (zero external assets needed)
 function playSound(type: 'mark' | 'warn' | 'win', soundEnabled: boolean) {
   if (!soundEnabled || typeof window === 'undefined') return;
@@ -60,6 +62,37 @@ function playSound(type: 'mark' | 'warn' | 'win', soundEnabled: boolean) {
   }
 }
 
+// Party Popper Confetti Animation
+function triggerPartyPopper() {
+  if (typeof window === 'undefined') return;
+  try {
+    confetti({
+      particleCount: 90,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#F6C6C6', '#C9DDF5', '#CFE8D5', '#E8D5F2', '#F9E7A8', '#FF6B6B', '#FFD700'],
+    });
+    setTimeout(() => {
+      confetti({
+        particleCount: 60,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0.1, y: 0.7 },
+        colors: ['#F6C6C6', '#C9DDF5', '#CFE8D5', '#E8D5F2', '#F9E7A8'],
+      });
+      confetti({
+        particleCount: 60,
+        angle: 120,
+        spread: 55,
+        origin: { x: 0.9, y: 0.7 },
+        colors: ['#F6C6C6', '#C9DDF5', '#CFE8D5', '#E8D5F2', '#F9E7A8'],
+      });
+    }, 200);
+  } catch (err) {
+    console.error('Confetti error:', err);
+  }
+}
+
 export default function HousieGamePage() {
   const { gameId } = useParams<{ gameId: string }>();
   const { user, token } = useAuth();
@@ -71,11 +104,14 @@ export default function HousieGamePage() {
   const [connected, setConnected] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [winners, setWinners] = useState<{ name: string; pattern: string }[]>([]);
   const [claimStatus, setClaimStatus] = useState<Record<string, 'idle' | 'pending' | 'approved' | 'rejected'>>({});
   const [completedPatterns, setCompletedPatterns] = useState<string[]>([]);
   const [newNumberAnim, setNewNumberAnim] = useState(false);
   
+  // Exclusive Winner Celebration Modal state (only for current winner, only once)
+  const [myWinCelebration, setMyWinCelebration] = useState<{ pattern: string } | null>(null);
+  const seenWinsRef = useRef<Set<string>>(new Set());
+
   // Interactive daubing states
   const [markedNumbers, setMarkedNumbers] = useState<Set<number>>(new Set());
   const [shakingNumber, setShakingNumber] = useState<number | null>(null);
@@ -217,17 +253,28 @@ export default function HousieGamePage() {
       showFeedback('Game has ended! Thank you for playing.', 'info');
     });
 
-    socket.on('winner-approved', (data: any) => {
-      setWinners((prev) => [...prev, { name: data.playerName || 'A player', pattern: data.pattern }]);
+    const handleWinnerApproved = (data: any) => {
       setClaimStatus((prev) => ({ ...prev, [data.pattern]: 'approved' }));
-      playSound('win', soundEnabled);
-    });
+      const currentUserId = (user as any)?.id || (user as any)?._id;
+      const isWinner = Boolean(
+        (data.playerId && currentUserId && String(data.playerId) === String(currentUserId)) ||
+        (data.playerName && user?.name && data.playerName.toLowerCase() === user.name.toLowerCase())
+      );
 
-    socket.on('housie:claim_approved', (data: any) => {
-      setWinners((prev) => [...prev, { name: data.playerName || 'A player', pattern: data.pattern }]);
-      setClaimStatus((prev) => ({ ...prev, [data.pattern]: 'approved' }));
-      playSound('win', soundEnabled);
-    });
+      // ONLY display the message and animation to the winner, and ONLY ONCE
+      if (isWinner) {
+        const winKey = `${data.claimId || ''}-${data.pattern}`;
+        if (!seenWinsRef.current.has(winKey)) {
+          seenWinsRef.current.add(winKey);
+          setMyWinCelebration({ pattern: data.pattern });
+          playSound('win', soundEnabled);
+          triggerPartyPopper();
+        }
+      }
+    };
+
+    socket.on('winner-approved', handleWinnerApproved);
+    socket.on('housie:claim_approved', handleWinnerApproved);
 
     socket.on('winner-rejected', (data: any) => {
       setClaimStatus((prev) => ({ ...prev, [data.pattern]: 'rejected' }));
@@ -451,22 +498,39 @@ export default function HousieGamePage() {
           )}
         </AnimatePresence>
 
-        {/* Winner announcements */}
+        {/* Winner celebration - ONLY for the winner, only once, with party popper animation */}
         <AnimatePresence>
-          {winners.map((w, i) => (
+          {myWinCelebration && (
             <motion.div
-              key={i}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="bg-gold-light border border-gold/30 rounded-2xl px-5 py-3 flex items-center gap-3"
+              initial={{ opacity: 0, scale: 0.85, y: -20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: -20 }}
+              className="bg-gradient-to-r from-pastel-yellow via-pastel-peach to-pastel-pink border-2 border-pastel-yellow rounded-3xl p-6 sm:p-8 shadow-pastel text-center relative overflow-hidden my-4 ring-4 ring-pastel-yellow/50"
             >
-              <Trophy className="w-5 h-5 text-gold-dark flex-shrink-0" />
-              <span className="font-bold text-bappa-text">
-                {PATTERN_LABELS[w.pattern] || w.pattern} won by {w.name}!
-              </span>
+              <div className="flex flex-col items-center justify-center gap-3 relative z-10">
+                <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-3xl bg-white shadow-pastel flex items-center justify-center text-4xl sm:text-5xl animate-bounce">
+                  🎉
+                </div>
+                <div className="space-y-1">
+                  <span className="px-3.5 py-1 rounded-full bg-white/95 text-amber-950 font-black text-xs uppercase tracking-wider shadow-xs inline-block mb-1">
+                    🎊 YOU WON! 🎊
+                  </span>
+                  <h2 className="text-2xl sm:text-3xl font-black text-bappa-text tracking-tight">
+                    {PATTERN_LABELS[myWinCelebration.pattern] || myWinCelebration.pattern} Claim Approved!
+                  </h2>
+                  <p className="text-bappa-text/85 font-bold text-xs sm:text-sm max-w-md mx-auto">
+                    Congratulations! The Host verified and confirmed your ticket claim. +50 Festival Points have been added to your profile!
+                  </p>
+                </div>
+                <button
+                  onClick={() => setMyWinCelebration(null)}
+                  className="btn-primary text-xs sm:text-sm font-black py-2.5 px-7 rounded-2xl shadow-pastel-sm mt-2 hover:scale-105 active:scale-95 transition-transform"
+                >
+                  Claim Victory & Continue Playing 🏆
+                </button>
+              </div>
             </motion.div>
-          ))}
+          )}
         </AnimatePresence>
 
         {/* Game paused / ended notice */}

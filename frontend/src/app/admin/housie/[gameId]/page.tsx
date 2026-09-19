@@ -418,14 +418,29 @@ export default function ControlRoom() {
             {/* Auto call */}
             <div className="flex items-center justify-between p-3.5 bg-pastel-surface rounded-2xl border border-pastel-border/60">
               <div>
-                <div className="text-xs font-bold text-bappa-text">Auto Call</div>
-                <div className="text-[11px] text-bappa-muted">Every {autoInterval} seconds</div>
+                <div className="text-xs font-bold text-bappa-text flex items-center gap-1.5">
+                  <span>Auto Caller</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${autoCall ? 'bg-pastel-mint text-emerald-900' : 'bg-slate-200 text-slate-600'}`}>
+                    {autoCall ? 'ON' : 'OFF'}
+                  </span>
+                </div>
+                <div className="text-[11px] text-bappa-muted font-medium mt-0.5">Picks ball every {autoInterval} seconds</div>
               </div>
               <button
                 onClick={toggleAutoCall}
-                className={`relative w-12 h-6 rounded-full transition-colors ${autoCall ? 'bg-primary' : 'bg-pastel-border'}`}
+                type="button"
+                className={`relative w-14 h-7 rounded-full p-1 transition-all duration-200 cursor-pointer ${
+                  autoCall
+                    ? 'bg-emerald-500 shadow-pastel-sm'
+                    : 'bg-slate-300 hover:bg-slate-400'
+                }`}
+                aria-label="Toggle Auto Call"
               >
-                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${autoCall ? 'translate-x-7' : 'translate-x-1'}`} />
+                <div
+                  className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-200 ${
+                    autoCall ? 'translate-x-7' : 'translate-x-0'
+                  }`}
+                />
               </button>
             </div>
 
@@ -470,7 +485,6 @@ export default function ControlRoom() {
                         ? 'bg-pastel-mint text-bappa-text font-black border border-pastel-mint/80'
                         : 'bg-pastel-surface/60 border border-pastel-border/60 text-bappa-muted/70'
                     }`}
-                    title={isCalled ? `${n} - Called` : `${n} - Available`}
                   >
                     {n}
                   </div>

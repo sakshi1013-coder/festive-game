@@ -456,9 +456,11 @@ export function initSocket(io: Server): void {
         });
 
         const gameId = claim.gameId.toString();
+        const player = await User.findById(claim.playerId);
         io.to(`game:${gameId}`).emit('winner-approved', {
           claimId,
           playerId: claim.playerId.toString(),
+          playerName: player?.name || 'A player',
           pattern: claim.pattern,
         });
       } catch (err) {
