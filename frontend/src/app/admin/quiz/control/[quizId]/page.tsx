@@ -259,19 +259,21 @@ export default function HostQuizControlPage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-20 page-transition">
-      {/* ─── PROMINENT GAME ROOM CODE BANNER (Requirement 1) ─── */}
-      <div className="card border-2 border-primary/40 bg-gradient-to-br from-amber-500/10 via-surface to-primary-light/30 p-6 sm:p-8 shadow-card-lg text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="space-y-1.5">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary text-white rounded-full text-xs font-black tracking-widest uppercase">
-            <Sparkles className="w-3.5 h-3.5" /> Your Game Room
-          </span>
+      {/* ─── PROMINENT GAME ROOM CODE BANNER ─── */}
+      <div className="bg-white rounded-3xl border border-pastel-border/80 p-6 sm:p-8 shadow-pastel-sm text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-pastel-blue/60 text-bappa-text rounded-full text-xs font-black tracking-widest uppercase">
+            <Sparkles className="w-3.5 h-3.5 text-primary" /> Live Quiz Room
+          </div>
           <div className="text-4xl sm:text-6xl font-black font-mono tracking-widest text-primary drop-shadow-sm">
             {quiz.roomId}
           </div>
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-xs font-bold text-bappa-muted pt-1">
-            <span>Players Joined: <strong className="text-primary text-sm">{totalJoinedCount}</strong></span>
+            <span>Joined: <strong className="text-bappa-text text-sm font-black">{totalJoinedCount} players</strong></span>
             <span>•</span>
-            <span>Status: <strong className="text-emerald-700 text-sm">{isCompleted ? 'Completed' : quiz.status === 'active' ? 'LIVE' : 'Waiting for Players'}</strong></span>
+            <span className="flex items-center gap-1.5">
+              Status: <span className="px-2.5 py-0.5 rounded-full bg-pastel-mint text-bappa-text font-black text-xs">{isCompleted ? 'Completed' : quiz.status === 'active' ? 'LIVE' : 'Waiting for Players'}</span>
+            </span>
           </div>
         </div>
 
@@ -282,43 +284,39 @@ export default function HostQuizControlPage() {
               setCodeCopied(true);
               setTimeout(() => setCodeCopied(false), 2000);
             }}
-            className="btn-primary py-3.5 px-6 text-sm font-black flex items-center gap-2 shadow-saffron hover:scale-[1.02] active:scale-[0.98]"
+            className="btn-primary py-3 px-6 text-sm font-black flex items-center gap-2 shadow-pastel-sm hover:scale-[1.02] active:scale-[0.98]"
           >
             {codeCopied ? <Check className="w-4 h-4 text-white" /> : <Copy className="w-4 h-4" />}
             <span>{codeCopied ? 'Room Code Copied!' : 'Copy Room Code'}</span>
           </button>
           <button
             onClick={copyRoomLink}
-            className="btn-outline py-3.5 px-6 text-sm font-black flex items-center gap-2 border-2 border-primary text-primary hover:bg-primary-light hover:scale-[1.02] active:scale-[0.98]"
+            className="btn-outline py-3 px-6 text-sm font-black flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
           >
             {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Link2 className="w-4 h-4" />}
-            <span>{copied ? 'Player Link Copied!' : 'Copy Player Link'}</span>
+            <span>{copied ? 'Link Copied!' : 'Copy Player Link'}</span>
           </button>
         </div>
       </div>
 
       {/* ─── TOP STATUS BAR ──────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-r from-primary via-saffron to-maroon text-white rounded-3xl p-6 shadow-card-lg relative overflow-hidden">
-        <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10 flex items-center justify-end pr-8 pointer-events-none">
-          <Flame className="w-40 h-40 text-white" />
-        </div>
-
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
+      <div className="bg-gradient-to-r from-pastel-lavender/80 via-pastel-blue/80 to-pastel-mint/80 border border-pastel-border/80 rounded-3xl p-6 sm:p-7 shadow-pastel-sm relative overflow-hidden">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1.5">
             <div className="flex items-center gap-3">
-              <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-xs font-black tracking-wide uppercase">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                Live Host Control Room
+              <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white/80 backdrop-blur-md text-xs font-black tracking-wide uppercase text-bappa-text">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                Live Host Console
               </span>
-              <span className="text-xs bg-black/25 px-2.5 py-0.5 rounded-full font-bold">
+              <span className="text-xs bg-white/70 px-2.5 py-0.5 rounded-full font-bold text-bappa-text">
                 {quiz.difficulty.toUpperCase()} • {questions.length} Questions
               </span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-black tracking-tight drop-shadow-sm">
+            <h1 className="text-2xl md:text-3xl font-black text-bappa-text tracking-tight">
               {cleanTitle}
             </h1>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-white/90">
-              <span className="font-semibold bg-white/15 px-2.5 py-0.5 rounded-md">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-bappa-muted font-medium">
+              <span className="bg-white/60 px-2.5 py-0.5 rounded-md font-bold text-bappa-text">
                 {quiz.sourceAartis.length} Sacred Aartis Included
               </span>
               <span>•</span>
@@ -333,18 +331,18 @@ export default function HostQuizControlPage() {
         {/* Left 2 Cols: Active Question Monitor */}
         <div className="lg:col-span-2 space-y-6">
           {/* Question Status Card */}
-          <div className="card shadow-card-lg border-2 border-primary/20 p-6 relative">
+          <div className="bg-white rounded-3xl shadow-pastel-sm border border-pastel-border/80 p-6 sm:p-7 relative">
             {/* Top Row: Q Number + Timer */}
-            <div className="flex items-center justify-between border-b border-bappa-border pb-4 mb-4">
+            <div className="flex items-center justify-between border-b border-pastel-border/60 pb-4 mb-5">
               <div className="flex items-center gap-3">
-                <span className="w-10 h-10 rounded-2xl bg-primary text-white font-black flex items-center justify-center text-lg shadow-md">
+                <span className="w-10 h-10 rounded-2xl bg-pastel-blue text-bappa-text font-black flex items-center justify-center text-lg shadow-xs">
                   {currentIndex + 1}
                 </span>
                 <div>
                   <div className="text-xs font-black text-bappa-muted uppercase">
                     Active Question ({currentIndex + 1} of {questions.length})
                   </div>
-                  <div className="font-bold text-sm text-bappa-text">
+                  <div className="font-black text-sm text-bappa-text">
                     {QUESTION_TYPE_LABELS[currentQ?.type as keyof typeof QUESTION_TYPE_LABELS]?.label ||
                       currentQ?.type}
                   </div>
@@ -355,8 +353,8 @@ export default function HostQuizControlPage() {
               <div
                 className={`flex items-center gap-2 px-4 py-1.5 rounded-full font-black text-sm transition-colors ${
                   timeLeft <= 5 && isTimerRunning
-                    ? 'bg-error-light text-error animate-pulse border border-error/30'
-                    : 'bg-primary-light text-primary border border-primary/20'
+                    ? 'bg-pastel-pink text-rose-800 animate-pulse border border-rose-300'
+                    : 'bg-pastel-yellow text-amber-900 border border-pastel-yellow'
                 }`}
               >
                 <Timer className="w-4 h-4" />
@@ -371,15 +369,15 @@ export default function HostQuizControlPage() {
               </h2>
 
               {/* Authentic Source Reference Banner */}
-              <div className="bg-amber-50 border border-amber-200/80 rounded-2xl p-4 flex items-start gap-3">
-                <ShieldCheck className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="bg-pastel-surface border border-pastel-border rounded-2xl p-4 flex items-start gap-3">
+                <ShieldCheck className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                 <div className="text-xs space-y-0.5">
-                  <div className="font-black text-amber-900">
+                  <div className="font-black text-bappa-text">
                     Verified Authentic Reference:
                   </div>
-                  <div className="text-amber-800 font-bold">
+                  <div className="text-bappa-muted font-bold">
                     {currentQ?.sourceAarti} • Verse / Line:{' '}
-                    <span className="text-maroon font-black font-mono">
+                    <span className="text-primary font-black font-mono">
                       "{currentQ?.sourceLine}"
                     </span>
                   </div>
@@ -388,11 +386,11 @@ export default function HostQuizControlPage() {
             </div>
 
             {/* Answer Details for Host View */}
-            <div className="bg-sand-light/50 border border-sand rounded-2xl p-5 space-y-4">
+            <div className="bg-pastel-surface/60 border border-pastel-border/70 rounded-2xl p-5 space-y-4">
               <div className="flex items-center justify-between text-xs font-black text-bappa-muted uppercase tracking-wider">
-                <span>Answer Details</span>
-                <span className="text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
-                  Points: {currentQ?.points || 10} pts
+                <span>Correct Answer Details</span>
+                <span className="text-emerald-900 bg-pastel-mint px-2.5 py-0.5 rounded-full font-bold">
+                  {currentQ?.points || 10} pts
                 </span>
               </div>
 
@@ -404,16 +402,16 @@ export default function HostQuizControlPage() {
                     return (
                       <div
                         key={oIdx}
-                        className={`p-3 rounded-xl border text-sm font-bold flex items-center justify-between ${
+                        className={`p-3.5 rounded-2xl border text-sm font-bold flex items-center justify-between ${
                           isCorrect
-                            ? 'bg-emerald-50 border-emerald-400 text-emerald-900 font-black shadow-sm'
-                            : 'bg-white border-bappa-border text-bappa-text/80 opacity-75'
+                            ? 'bg-pastel-mint/80 border-pastel-mint text-bappa-text font-black shadow-xs'
+                            : 'bg-white border-pastel-border/80 text-bappa-text/80 opacity-80'
                         }`}
                       >
                         <span className="truncate">{opt}</span>
                         {isCorrect && (
-                          <span className="flex items-center gap-1 text-xs text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full flex-shrink-0 ml-2">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> Correct Answer
+                          <span className="flex items-center gap-1 text-xs text-emerald-900 bg-white/80 px-2.5 py-0.5 rounded-full flex-shrink-0 ml-2 font-black">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Correct
                           </span>
                         )}
                       </div>
@@ -430,7 +428,7 @@ export default function HostQuizControlPage() {
                     {currentQ.correctOrder.map((tok, tIdx) => (
                       <span
                         key={tIdx}
-                        className="bg-emerald-100 border border-emerald-300 text-emerald-900 px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-1.5 shadow-sm"
+                        className="bg-pastel-mint border border-pastel-mint/90 text-bappa-text px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-1.5 shadow-xs"
                       >
                         <span className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">
                           {tIdx + 1}
@@ -445,17 +443,17 @@ export default function HostQuizControlPage() {
               {/* Incorrect Word Highlights */}
               {currentQ?.type === 'incorrect_word' && (
                 <div className="space-y-2">
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs space-y-1">
-                    <div className="text-red-700 font-bold">
+                  <div className="p-3.5 bg-pastel-pink/40 border border-pastel-pink rounded-2xl text-xs space-y-1">
+                    <div className="text-rose-900 font-bold">
                       Incorrect Word:{' '}
-                      <span className="text-red-900 font-black underline decoration-red-400 text-sm">
+                      <span className="text-rose-950 font-black underline decoration-rose-400 text-sm">
                         {currentQ.incorrectWord}
                       </span>
                     </div>
                     {currentQ.correctWord && (
-                      <div className="text-emerald-800 font-bold">
+                      <div className="text-emerald-900 font-bold">
                         Correct Authentic Word:{' '}
-                        <span className="text-emerald-900 font-black text-sm">
+                        <span className="text-emerald-950 font-black text-sm">
                           {currentQ.correctWord}
                         </span>
                       </div>
@@ -471,7 +469,7 @@ export default function HostQuizControlPage() {
                   {currentQ.pairs.map((p, pIdx) => (
                     <div
                       key={pIdx}
-                      className="flex items-center justify-between text-xs bg-white p-2.5 rounded-xl border border-bappa-border"
+                      className="flex items-center justify-between text-xs bg-white p-2.5 rounded-xl border border-pastel-border"
                     >
                       <span className="font-bold text-bappa-text">{p.left}</span>
                       <span className="text-primary font-black">↔</span>
@@ -482,7 +480,7 @@ export default function HostQuizControlPage() {
               )}
 
               {currentQ?.explanation && (
-                <div className="text-xs text-bappa-muted bg-white/80 p-3 rounded-xl border border-bappa-border">
+                <div className="text-xs text-bappa-muted bg-white p-3 rounded-2xl border border-pastel-border/60">
                   <span className="font-bold text-bappa-text">Explanation: </span>
                   {currentQ.explanation}
                 </div>
@@ -490,25 +488,25 @@ export default function HostQuizControlPage() {
             </div>
 
             {/* Live Host Action Buttons */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-6 border-t border-bappa-border">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-6 border-t border-pastel-border/60">
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleRevealAnswer}
                   disabled={revealed || isCompleted}
-                  className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all ${
+                  className={`px-4 py-2.5 rounded-2xl font-bold text-xs flex items-center gap-2 shadow-xs transition-all ${
                     revealed
-                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 cursor-default'
-                      : 'bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300'
+                      ? 'bg-pastel-mint text-emerald-900 border border-pastel-mint cursor-default'
+                      : 'bg-pastel-yellow hover:bg-pastel-yellow/80 text-amber-900 border border-pastel-yellow'
                   }`}
                 >
                   <Eye className="w-4 h-4" />
-                  {revealed ? 'Answer Revealed' : 'Reveal Answer'}
+                  {revealed ? 'Answer Revealed' : 'Reveal Answer to Players'}
                 </button>
 
                 {!isTimerRunning && !revealed && (
                   <button
                     onClick={() => setIsTimerRunning(true)}
-                    className="px-3 py-2.5 bg-sand hover:bg-sand/80 text-bappa-text rounded-xl font-bold text-xs flex items-center gap-1.5"
+                    className="px-3.5 py-2.5 bg-pastel-surface hover:bg-pastel-surface/80 border border-pastel-border text-bappa-text rounded-2xl font-bold text-xs flex items-center gap-1.5"
                   >
                     <Play className="w-3.5 h-3.5 text-primary" /> Resume Timer
                   </button>
@@ -519,7 +517,7 @@ export default function HostQuizControlPage() {
                 <button
                   onClick={handleNextQuestion}
                   disabled={isCompleted}
-                  className="btn-primary py-2.5 px-5 text-xs flex items-center gap-2 shadow-md hover:scale-[1.02] active:scale-[0.98]"
+                  className="btn-primary py-2.5 px-6 text-xs flex items-center gap-2 shadow-pastel-sm hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <span>
                     {currentIndex + 1 >= questions.length
@@ -533,41 +531,41 @@ export default function HostQuizControlPage() {
           </div>
 
           {/* Player Real-Time Responses Panel */}
-          <div className="card p-5 space-y-3 shadow-card">
+          <div className="bg-white rounded-3xl p-6 space-y-3 shadow-pastel-sm border border-pastel-border/80">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 font-black text-sm text-bappa-text">
                 <Users className="w-4 h-4 text-primary" />
-                <span>Player Submissions (This Round):</span>
+                <span>Player Submissions (Current Round):</span>
               </div>
-              <span className="text-xs bg-primary-light text-primary font-black px-2.5 py-0.5 rounded-full">
+              <span className="text-xs bg-pastel-blue/60 text-bappa-text font-black px-3 py-0.5 rounded-full">
                 {answeredPlayers.length} answered
               </span>
             </div>
 
             {/* Real-Time Breakdown Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-center">
-              <div className="p-2.5 bg-surface-secondary rounded-xl border border-bappa-border">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1 text-center">
+              <div className="p-3 bg-pastel-surface rounded-2xl border border-pastel-border/60">
                 <div className="text-[10px] font-bold text-bappa-muted uppercase">Answered</div>
                 <div className="text-base font-black text-bappa-text">
                   {answeredPlayers.length} / {totalJoinedCount}
                 </div>
               </div>
-              <div className="p-2.5 bg-emerald-50 rounded-xl border border-emerald-200">
-                <div className="text-[10px] font-bold text-emerald-800 uppercase">Correct</div>
-                <div className="text-base font-black text-emerald-700">{correctCount}</div>
+              <div className="p-3 bg-pastel-mint/60 rounded-2xl border border-pastel-mint">
+                <div className="text-[10px] font-bold text-emerald-900 uppercase">Correct</div>
+                <div className="text-base font-black text-emerald-800">{correctCount}</div>
               </div>
-              <div className="p-2.5 bg-amber-50 rounded-xl border border-amber-200">
-                <div className="text-[10px] font-bold text-amber-800 uppercase">Incorrect</div>
-                <div className="text-base font-black text-amber-700">{incorrectCount}</div>
+              <div className="p-3 bg-pastel-pink/50 rounded-2xl border border-pastel-pink">
+                <div className="text-[10px] font-bold text-rose-900 uppercase">Incorrect</div>
+                <div className="text-base font-black text-rose-800">{incorrectCount}</div>
               </div>
-              <div className="p-2.5 bg-sand-light rounded-xl border border-bappa-border">
-                <div className="text-[10px] font-bold text-bappa-muted uppercase">Waiting</div>
-                <div className="text-base font-black text-primary">{waitingCount}</div>
+              <div className="p-3 bg-pastel-yellow/50 rounded-2xl border border-pastel-yellow">
+                <div className="text-[10px] font-bold text-amber-900 uppercase">Waiting</div>
+                <div className="text-base font-black text-amber-800">{waitingCount}</div>
               </div>
             </div>
 
             {answeredPlayers.length === 0 ? (
-              <div className="text-center py-6 text-xs text-bappa-muted border border-dashed border-bappa-border rounded-xl">
+              <div className="text-center py-6 text-xs text-bappa-muted border border-dashed border-pastel-border rounded-2xl">
                 Waiting for player submissions…
               </div>
             ) : (
@@ -577,12 +575,12 @@ export default function HostQuizControlPage() {
                     key={idx}
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border shadow-xs ${
                       p.correct
-                        ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
-                        : 'bg-amber-50 border-amber-200 text-amber-900'
+                        ? 'bg-pastel-mint/70 border-pastel-mint text-emerald-900'
+                        : 'bg-pastel-pink/60 border-pastel-pink text-rose-900'
                     }`}
                   >
                     <CheckCircle2
-                      className={`w-3.5 h-3.5 ${p.correct ? 'text-emerald-600' : 'text-amber-500'}`}
+                      className={`w-3.5 h-3.5 ${p.correct ? 'text-emerald-600' : 'text-rose-500'}`}
                     />
                     {p.name}
                   </span>
@@ -594,15 +592,15 @@ export default function HostQuizControlPage() {
 
         {/* Right Col: Question Navigation List */}
         <div className="space-y-4">
-          <div className="card p-4 space-y-3 shadow-card">
-            <div className="flex items-center justify-between border-b border-bappa-border pb-3">
+          <div className="bg-white rounded-3xl p-5 space-y-3 shadow-pastel-sm border border-pastel-border/80">
+            <div className="flex items-center justify-between border-b border-pastel-border/60 pb-3">
               <div className="font-black text-sm text-bappa-text flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-primary" />
-                <span>Questions List ({questions.length})</span>
+                <span>Questions ({questions.length})</span>
               </div>
               <button
                 onClick={handleEndQuiz}
-                className="text-xs text-error font-black hover:underline flex items-center gap-1"
+                className="text-xs text-rose-600 font-black hover:underline flex items-center gap-1"
               >
                 <LogOut className="w-3.5 h-3.5" /> End Quiz
               </button>
@@ -622,12 +620,12 @@ export default function HostQuizControlPage() {
                       setAnsweredPlayers([]);
                       setTimeLeft(q.timeLimit || 25);
                     }}
-                    className={`w-full text-left p-3 rounded-xl border transition-all flex items-start gap-3 ${
+                    className={`w-full text-left p-3 rounded-2xl border transition-all flex items-start gap-3 ${
                       isActive
-                        ? 'bg-primary-light/60 border-primary shadow-sm ring-1 ring-primary'
+                        ? 'bg-pastel-blue/60 border-primary shadow-xs ring-1 ring-primary'
                         : isPast
-                        ? 'bg-white border-bappa-border/60 opacity-85 hover:border-primary/50'
-                        : 'bg-sand-light/40 border-bappa-border/40 hover:border-primary/40'
+                        ? 'bg-white border-pastel-border/60 opacity-90 hover:border-pastel-blue'
+                        : 'bg-pastel-surface/60 border-pastel-border/40 hover:border-pastel-blue/60'
                     }`}
                   >
                     <span
@@ -636,7 +634,7 @@ export default function HostQuizControlPage() {
                           ? 'bg-primary text-white shadow-xs'
                           : isPast
                           ? 'bg-emerald-600 text-white'
-                          : 'bg-sand text-bappa-muted'
+                          : 'bg-pastel-surface text-bappa-muted'
                       }`}
                     >
                       {idx + 1}

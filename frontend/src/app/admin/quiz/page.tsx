@@ -339,35 +339,38 @@ export default function UnifiedQuizManagerPage() {
       {/* Top Header & Tab Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-bappa-text">Quiz Manager</h1>
-          <p className="text-bappa-muted mt-1">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pastel-lavender/60 text-bappa-text font-bold text-xs uppercase tracking-wider mb-2">
+            ✨ Quiz Control Center
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-black text-bappa-text tracking-tight">Quiz Manager</h1>
+          <p className="text-bappa-muted text-sm mt-1">
             Generate dynamic AI Aarti quizzes or manage festival trivia questions.
           </p>
         </div>
 
         {/* Unified Tabs */}
-        <div className="flex items-center bg-surface-secondary p-1 rounded-2xl border border-bappa-border">
+        <div className="flex items-center bg-white p-1.5 rounded-2xl border border-pastel-border/80 shadow-pastel-sm">
           <button
             type="button"
             onClick={() => setActiveTab('generator')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
               activeTab === 'generator'
-                ? 'bg-primary text-white shadow-saffron'
+                ? 'bg-pastel-blue text-bappa-text shadow-xs'
                 : 'text-bappa-muted hover:text-bappa-text'
             }`}
           >
-            <Sparkles className="w-4 h-4" /> AI Aarti Generator
+            <Sparkles className="w-4 h-4 text-primary" /> AI Aarti Generator
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('bank')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
               activeTab === 'bank'
-                ? 'bg-primary text-white shadow-saffron'
+                ? 'bg-pastel-blue text-bappa-text shadow-xs'
                 : 'text-bappa-muted hover:text-bappa-text'
             }`}
           >
-            <BookOpen className="w-4 h-4" /> Custom Question Bank
+            <BookOpen className="w-4 h-4 text-primary" /> Trivia Question Bank
           </button>
         </div>
       </div>
@@ -378,7 +381,7 @@ export default function UnifiedQuizManagerPage() {
       {activeTab === 'generator' && (
         <div className="space-y-8">
           {generatorError && (
-            <div className="bg-error-light border border-error/20 text-error rounded-xl p-4 flex items-center gap-3 text-sm font-bold">
+            <div className="bg-pastel-pink/40 border border-pastel-pink text-error rounded-2xl p-4 flex items-center gap-3 text-sm font-bold">
               <AlertCircle className="w-5 h-5 flex-shrink-0" />
               <span>{generatorError}</span>
             </div>
@@ -386,10 +389,10 @@ export default function UnifiedQuizManagerPage() {
 
           {/* Setup Form (when not yet generated) */}
           {!generatedQuiz && (
-            <div className="card space-y-8 shadow-card-lg border-primary/20">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 space-y-8 shadow-pastel-sm border border-pastel-border/80">
               <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-light text-primary rounded-full text-xs font-bold mb-2">
-                  <Sparkles className="w-3.5 h-3.5" /> AI Aarti Quiz Generator
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-pastel-lavender/60 text-bappa-text rounded-full text-xs font-bold mb-2">
+                  <Sparkles className="w-3.5 h-3.5 text-primary" /> AI Aarti Quiz Generator
                 </div>
                 <h2 className="text-2xl font-black text-bappa-text">Configure Live Aarti Quiz</h2>
                 <p className="text-bappa-muted text-sm mt-0.5">
@@ -411,10 +414,10 @@ export default function UnifiedQuizManagerPage() {
                         setQuestionCount(cnt);
                         setIsCustomCount(false);
                       }}
-                      className={`px-5 py-3 rounded-xl font-black text-base transition-all ${
+                      className={`px-5 py-2.5 rounded-2xl font-bold text-sm transition-all ${
                         !isCustomCount && questionCount === cnt
-                          ? 'bg-primary text-white shadow-saffron'
-                          : 'bg-surface-secondary border border-bappa-border text-bappa-text hover:border-primary'
+                          ? 'bg-pastel-blue text-bappa-text shadow-xs ring-2 ring-pastel-blue'
+                          : 'bg-pastel-surface border border-pastel-border text-bappa-text hover:border-pastel-blue'
                       }`}
                     >
                       {cnt} Questions
@@ -424,10 +427,10 @@ export default function UnifiedQuizManagerPage() {
                   <button
                     type="button"
                     onClick={() => setIsCustomCount(true)}
-                    className={`px-5 py-3 rounded-xl font-black text-base transition-all ${
+                    className={`px-5 py-2.5 rounded-2xl font-bold text-sm transition-all ${
                       isCustomCount
-                        ? 'bg-primary text-white shadow-saffron'
-                        : 'bg-surface-secondary border border-bappa-border text-bappa-text hover:border-primary'
+                        ? 'bg-pastel-blue text-bappa-text shadow-xs ring-2 ring-pastel-blue'
+                        : 'bg-pastel-surface border border-pastel-border text-bappa-text hover:border-pastel-blue'
                     }`}
                   >
                     Custom
@@ -440,7 +443,7 @@ export default function UnifiedQuizManagerPage() {
                       max={30}
                       value={customCountValue}
                       onChange={(e) => setCustomCountValue(e.target.value)}
-                      className="input-field w-24 text-center font-bold"
+                      className="bg-pastel-surface border border-pastel-border rounded-2xl px-3 py-2 text-center font-bold text-bappa-text w-24 outline-none focus:border-primary"
                       placeholder="Count"
                     />
                   )}
@@ -458,10 +461,10 @@ export default function UnifiedQuizManagerPage() {
                       key={d.key}
                       type="button"
                       onClick={() => setDifficulty(d.key as any)}
-                      className={`p-3.5 rounded-xl font-bold text-sm border-2 text-center transition-all ${
+                      className={`p-3.5 rounded-2xl font-bold text-sm border-2 text-center transition-all ${
                         difficulty === d.key
-                          ? 'border-primary bg-primary-light text-primary shadow-saffron'
-                          : 'border-bappa-border bg-surface text-bappa-text hover:border-primary'
+                          ? 'border-pastel-blue bg-pastel-blue/60 text-bappa-text shadow-xs'
+                          : 'border-pastel-border bg-pastel-surface/60 text-bappa-text hover:border-pastel-blue'
                       }`}
                     >
                       {d.label}
@@ -490,10 +493,10 @@ export default function UnifiedQuizManagerPage() {
                   <button
                     type="button"
                     onClick={() => setSelectedTypes(['mixed'])}
-                    className={`p-3.5 rounded-xl text-left border-2 transition-all ${
+                    className={`p-3.5 rounded-2xl text-left border-2 transition-all ${
                       selectedTypes.includes('mixed')
-                        ? 'border-primary bg-primary-light shadow-saffron ring-2 ring-primary/30'
-                        : 'border-bappa-border bg-surface hover:border-primary'
+                        ? 'border-pastel-blue bg-pastel-blue/60 shadow-xs'
+                        : 'border-pastel-border bg-pastel-surface/60 hover:border-pastel-blue'
                     }`}
                   >
                     <div className="flex items-center gap-2 font-black text-bappa-text text-sm">
@@ -514,10 +517,10 @@ export default function UnifiedQuizManagerPage() {
                         key={key}
                         type="button"
                         onClick={() => toggleType(key)}
-                        className={`p-3.5 rounded-xl text-left border-2 transition-all ${
+                        className={`p-3.5 rounded-2xl text-left border-2 transition-all ${
                           isSelected
-                            ? 'border-primary bg-primary-light shadow-saffron ring-2 ring-primary/30'
-                            : 'border-bappa-border bg-surface hover:border-primary'
+                            ? 'border-pastel-blue bg-pastel-blue/60 shadow-xs'
+                            : 'border-pastel-border bg-pastel-surface/60 hover:border-pastel-blue'
                         }`}
                       >
                         <div className="flex items-center justify-between">
@@ -570,10 +573,10 @@ export default function UnifiedQuizManagerPage() {
                         <div
                           key={a._id}
                           onClick={() => toggleAarti(a.title)}
-                          className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                          className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
                             isChecked
-                              ? 'border-primary bg-primary-light/60 shadow-saffron'
-                              : 'border-bappa-border bg-surface opacity-70 hover:opacity-100'
+                              ? 'border-pastel-mint bg-pastel-mint/60 shadow-xs'
+                              : 'border-pastel-border bg-pastel-surface/60 opacity-70 hover:opacity-100'
                           }`}
                         >
                           <div className="flex items-start justify-between">
@@ -586,13 +589,13 @@ export default function UnifiedQuizManagerPage() {
                             </div>
                             <div
                               className={`w-6 h-6 rounded-lg border flex items-center justify-center ${
-                                isChecked ? 'bg-primary border-primary text-white' : 'border-bappa-border'
+                                isChecked ? 'bg-primary border-primary text-white' : 'border-pastel-border bg-white'
                               }`}
                             >
                               {isChecked && <Check className="w-3.5 h-3.5" />}
                             </div>
                           </div>
-                          <div className="mt-3 text-xs text-bappa-muted border-t border-bappa-border/40 pt-2 font-mono">
+                          <div className="mt-3 text-xs text-bappa-muted border-t border-pastel-border/60 pt-2 font-mono">
                             {a.lineCount} verified lines
                           </div>
                         </div>
@@ -604,16 +607,16 @@ export default function UnifiedQuizManagerPage() {
 
               {/* Real-time Progress Bar */}
               {generating && (
-                <div className="p-5 bg-primary-light rounded-2xl border border-primary/30 space-y-3">
-                  <div className="flex items-center justify-between text-sm font-bold text-primary">
+                <div className="p-5 bg-pastel-lavender/50 rounded-2xl border border-pastel-border space-y-3">
+                  <div className="flex items-center justify-between text-sm font-bold text-bappa-text">
                     <span className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" /> {generationMessage}
+                      <Loader2 className="w-4 h-4 animate-spin text-primary" /> {generationMessage}
                     </span>
                     <span>{generationProgress}%</span>
                   </div>
-                  <div className="w-full h-3 bg-bappa-border/40 rounded-full overflow-hidden">
+                  <div className="w-full h-3 bg-pastel-surface rounded-full overflow-hidden border border-pastel-border/60">
                     <motion.div
-                      className="h-full bg-primary rounded-full transition-all"
+                      className="h-full bg-gradient-to-r from-pastel-blue to-primary rounded-full transition-all"
                       animate={{ width: `${generationProgress}%` }}
                     />
                   </div>
@@ -625,7 +628,7 @@ export default function UnifiedQuizManagerPage() {
                 type="button"
                 onClick={handleGenerate}
                 disabled={generating || selectedAartis.length === 0}
-                className="btn-primary btn-lg w-full shadow-saffron py-4 flex items-center justify-center gap-3 text-lg font-black"
+                className="btn-primary w-full py-4 flex items-center justify-center gap-3 text-lg font-black shadow-pastel-sm"
               >
                 {generating ? (
                   <>

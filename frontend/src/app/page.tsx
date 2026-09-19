@@ -6,609 +6,502 @@ import { motion } from 'framer-motion';
 import {
   Trophy, Zap, Users, Star, ChevronRight, Play,
   Clock, Shield, Award, BookOpen, Grid3X3, Flame,
-  Sparkles, HelpCircle, Ticket, Medal
+  Sparkles, HelpCircle, Ticket, Heart, ArrowRight
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 
 const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 24 },
+  hidden: { opacity: 0, y: 20 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.1, duration: 0.5, ease: 'easeOut' as const },
+    transition: { delay: i * 0.08, duration: 0.45, ease: 'easeOut' as const },
   }),
 };
 
 const LEADERBOARD_PREVIEW = [
-  { rank: 1, name: 'Priya Sharma', points: 1240, wins: 8, avatar: 'PS' },
-  { rank: 2, name: 'Arjun Pawar', points: 1180, wins: 7, avatar: 'AP' },
-  { rank: 3, name: 'Sneha Kulkarni', points: 1050, wins: 6, avatar: 'SK' },
-  { rank: 4, name: 'Rohit Desai', points: 920, wins: 5, avatar: 'RD' },
-  { rank: 5, name: 'Neha Joshi', points: 850, wins: 4, avatar: 'NJ' },
+  { rank: 1, name: 'Priya Sharma', points: 1420, wins: 9, avatar: 'PS', color: 'bg-pastel-yellow' },
+  { rank: 2, name: 'Arjun Pawar', points: 1280, wins: 7, avatar: 'AP', color: 'bg-pastel-blue' },
+  { rank: 3, name: 'Sneha Kulkarni', points: 1110, wins: 6, avatar: 'SK', color: 'bg-pastel-pink' },
+  { rank: 4, name: 'Rohit Desai', points: 940, wins: 5, avatar: 'RD', color: 'bg-pastel-mint' },
+  { rank: 5, name: 'Neha Joshi', points: 870, wins: 4, avatar: 'NJ', color: 'bg-pastel-lavender' },
 ];
 
-const RANK_MEDAL = ['1', '2', '3', '4', '5'];
-
 export default function LandingPage() {
-  const { user } = useAuth();
+  const { user, isHost } = useAuth();
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* ─── Navbar ───────────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-50 bg-surface/90 backdrop-blur-md border-b border-bappa-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-saffron-gradient flex items-center justify-center shadow-saffron flex-shrink-0">
-                <Flame className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <span className="font-black text-xl text-bappa-text tracking-tight">Bappa</span>
-                <span className="font-black text-xl text-primary tracking-tight">Verse</span>
-              </div>
+    <div className="min-h-screen bg-background text-bappa-text selection:bg-pastel-lavender">
+      {/* ─── Rounded Floating Navbar ─────────────────────────────────── */}
+      <header className="sticky top-3 z-50 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <nav className="bg-surface/95 backdrop-blur-md border border-bappa-border rounded-3xl shadow-card px-4 sm:px-6 py-3 flex items-center justify-between">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-10 h-10 rounded-2xl bg-pastel-lavender text-primary flex items-center justify-center font-black text-xl shadow-xs group-hover:scale-105 transition-transform">
+              ✨
             </div>
-            <div className="hidden md:flex items-center gap-6">
-              <Link href="#games" className="text-bappa-muted hover:text-primary font-medium transition-colors">
-                Games
-              </Link>
-              <Link href="/leaderboard" className="text-bappa-muted hover:text-primary font-medium transition-colors">
-                Leaderboard
-              </Link>
-              {user ? (
-                <Link
-                  href={user.role === 'player' ? '/dashboard' : '/admin'}
-                  className="btn-primary btn-sm"
-                >
-                  Dashboard
-                </Link>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <Link href="/login" className="btn-outline btn-sm">Log In</Link>
-                  <Link href="/register" className="btn-primary btn-sm">Register</Link>
-                </div>
-              )}
-            </div>
-            {/* Mobile nav */}
-            <div className="md:hidden flex items-center gap-2">
-              <Link href="/login" className="btn-outline btn-sm">Log In</Link>
-              <Link href="/register" className="btn-primary btn-sm">Register</Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* ─── Hero Section ─────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-hero-gradient">
-        {/* Decorative circles */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-maroon/5 rounded-full translate-y-1/2 -translate-x-1/2" />
-        <div className="absolute inset-0 bg-festive-dots opacity-40" />
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-              {/* Festival badge */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4 }}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-primary-light border border-primary/20 rounded-full mb-6"
-              >
-                <Sparkles className="w-4 h-4 text-primary flex-shrink-0" />
-                <span className="text-sm font-semibold text-primary">
-                  Ganesh Chaturthi Special
+              <span className="font-black text-xl text-bappa-text tracking-tight">Bappa</span>
+              <span className="font-black text-xl text-primary tracking-tight">Verse</span>
+            </div>
+          </Link>
+
+          {/* Nav Links */}
+          <div className="hidden md:flex items-center gap-2">
+            <Link
+              href="/"
+              className="px-3.5 py-1.5 rounded-xl font-bold text-sm text-bappa-text hover:bg-surface-secondary transition-colors"
+            >
+              Home
+            </Link>
+            <Link
+              href="#games"
+              className="px-3.5 py-1.5 rounded-xl font-bold text-sm text-bappa-secondary hover:text-bappa-text hover:bg-surface-secondary transition-colors"
+            >
+              Games
+            </Link>
+            <Link
+              href="/quiz"
+              className="px-3.5 py-1.5 rounded-xl font-bold text-sm text-bappa-secondary hover:text-bappa-text hover:bg-surface-secondary transition-colors flex items-center gap-1.5"
+            >
+              <span className="w-2 h-2 rounded-full bg-pastel-pink-dark"></span>
+              Quiz
+            </Link>
+            <Link
+              href="/dashboard/housie"
+              className="px-3.5 py-1.5 rounded-xl font-bold text-sm text-bappa-secondary hover:text-bappa-text hover:bg-surface-secondary transition-colors flex items-center gap-1.5"
+            >
+              <span className="w-2 h-2 rounded-full bg-pastel-blue-dark"></span>
+              Housie
+            </Link>
+            <Link
+              href="/leaderboard"
+              className="px-3.5 py-1.5 rounded-xl font-bold text-sm text-bappa-secondary hover:text-bappa-text hover:bg-surface-secondary transition-colors"
+            >
+              Leaderboard
+            </Link>
+          </div>
+
+          {/* Right Action Buttons */}
+          <div className="flex items-center gap-2.5">
+            {user ? (
+              <>
+                {isHost && (
+                  <Link
+                    href="/admin"
+                    className="btn-outline btn-sm bg-pastel-yellow-light border-pastel-yellow text-bappa-text"
+                  >
+                    Host Control
+                  </Link>
+                )}
+                <Link
+                  href="/dashboard/profile"
+                  className="btn-primary btn-sm flex items-center gap-1.5"
+                >
+                  <span className="w-5 h-5 rounded-full bg-white/25 flex items-center justify-center text-xs">
+                    {user.name.charAt(0).toUpperCase()}
+                  </span>
+                  <span>Profile</span>
+                </Link>
+              </>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link href="/login" className="btn-outline btn-sm">
+                  Log In
+                </Link>
+                <Link href="/register" className="btn-primary btn-sm">
+                  Play Free
+                </Link>
+              </div>
+            )}
+          </div>
+        </nav>
+      </header>
+
+      {/* ─── Hero Section: Playful Pastel Festival Lobby ──────────────── */}
+      <section className="relative overflow-hidden pt-12 pb-20 md:py-24">
+        {/* Subtle festive ambient accents */}
+        <div className="absolute top-10 left-1/4 w-80 h-80 rounded-full bg-pastel-lavender/30 blur-3xl pointer-events-none" />
+        <div className="absolute top-20 right-1/4 w-80 h-80 rounded-full bg-pastel-pink/25 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-5 left-1/3 w-96 h-96 rounded-full bg-pastel-mint/30 blur-3xl pointer-events-none" />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto">
+            {/* Festival tag badge */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4 }}
+              className="inline-flex items-center gap-2 px-4 py-1.5 bg-surface border border-bappa-border rounded-full shadow-xs mb-6"
+            >
+              <span className="text-base">🌸</span>
+              <span className="text-xs sm:text-sm font-bold text-bappa-secondary">
+                Ganapati Festival Multiplayer Gaming Lounge
+              </span>
+            </motion.div>
+
+            {/* Playful Headline */}
+            <motion.h1
+              custom={0}
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              className="text-5xl sm:text-6xl md:text-7xl font-black text-bappa-text tracking-tight leading-[1.15]"
+            >
+              Celebrate. <span className="text-primary">Play.</span>{' '}
+              <span className="bg-gradient-to-r from-pastel-pink-dark via-primary to-pastel-blue-dark bg-clip-text text-transparent">
+                Win.
+              </span>
+            </motion.h1>
+
+            <motion.p
+              custom={1}
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              className="mt-6 text-lg sm:text-xl text-bappa-secondary font-medium leading-relaxed max-w-2xl mx-auto"
+            >
+              Festive multiplayer games for your Ganapati celebration. Jump into live Aarti quizzes, play colorful Tambola, and climb the festive leaderboard with family & friends.
+            </motion.p>
+
+            {/* Hero CTAs */}
+            <motion.div
+              custom={2}
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              className="mt-8 flex flex-wrap items-center justify-center gap-3.5"
+            >
+              <Link href="#games" className="btn-primary btn-lg shadow-pastel gap-2">
+                <Play className="w-5 h-5 fill-white" /> Explore Games
+              </Link>
+              <Link href="/quiz" className="btn-outline btn-lg gap-2">
+                Join with Code <ChevronRight className="w-4 h-4 text-bappa-muted" />
+              </Link>
+            </motion.div>
+
+            {/* Micro Stats Row */}
+            <motion.div
+              custom={3}
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              className="mt-12 flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-sm font-bold text-bappa-secondary"
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-pastel-mint flex items-center justify-center text-success-dark">
+                  <Users className="w-4 h-4" />
+                </div>
+                <span>Live Multiplayer</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-pastel-yellow flex items-center justify-center text-bappa-text">
+                  <Trophy className="w-4 h-4" />
+                </div>
+                <span>Instant Claims</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-pastel-pink flex items-center justify-center text-maroon">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <span>100% Free & Family Friendly</span>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Main Game Cards Section ─────────────────────────────────── */}
+      <section id="games" className="py-16 md:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <span className="badge-lavender text-xs uppercase tracking-wider mb-2">
+            Multiplayer Games
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-black text-bappa-text">
+            Choose Your Festive Arena
+          </h2>
+          <p className="text-bappa-secondary text-sm sm:text-base mt-2 max-w-md mx-auto">
+            Play synchronized live games on your mobile or laptop during Ganapati celebrations.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Card 1: Quiz (Pastel Lavender + Pink Identity) */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.45 }}
+            className="rounded-4xl p-8 bg-quiz-gradient border-2 border-pastel-lavender shadow-card hover:shadow-card-hover hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div className="w-16 h-16 rounded-3xl bg-pastel-lavender text-primary flex items-center justify-center shadow-xs">
+                  <BookOpen className="w-8 h-8" />
+                </div>
+                <span className="badge-lavender font-bold text-xs px-3 py-1">
+                  10–20 Questions
                 </span>
-              </motion.div>
+              </div>
 
-              <motion.h1
-                custom={0}
-                variants={fadeUp}
-                initial="hidden"
-                animate="visible"
-                className="text-5xl md:text-6xl lg:text-7xl font-black text-bappa-text leading-tight"
-              >
-                Celebrate.
-                <br />
-                <span className="text-gradient-saffron">Play.</span>
-                <br />
-                <span className="text-gradient-maroon">Win.</span>
-              </motion.h1>
+              <span className="text-xs font-black tracking-wider uppercase text-primary">
+                Aarti Knowledge & Trivia
+              </span>
+              <h3 className="text-3xl font-black text-bappa-text mt-1 mb-3">
+                Ganapati Quiz
+              </h3>
+              <p className="text-bappa-secondary text-sm sm:text-base leading-relaxed mb-6">
+                Test your knowledge of authentic Marathi Aartis, Ganapati traditions, and sacred hymns. Rapid 4-color pastel answering with real-time live host rounds.
+              </p>
 
-              <motion.p
-                custom={1}
-                variants={fadeUp}
-                initial="hidden"
-                animate="visible"
-                className="mt-6 text-lg text-bappa-muted leading-relaxed max-w-md"
-              >
-                Experience the joy of Ganapati with exciting quizzes and live Housie games.
-                Compete with friends, mark your ticket, and claim your win.
-              </motion.p>
-
-              <motion.div
-                custom={2}
-                variants={fadeUp}
-                initial="hidden"
-                animate="visible"
-                className="mt-8 flex flex-wrap gap-4"
-              >
-                <Link href="#games" className="btn-primary btn-lg gap-2">
-                  Explore Games <ChevronRight className="w-5 h-5" />
-                </Link>
-                <Link href="/register" className="btn-outline btn-lg">
-                  Join Now Free
-                </Link>
-              </motion.div>
-
-              <motion.div
-                custom={3}
-                variants={fadeUp}
-                initial="hidden"
-                animate="visible"
-                className="mt-10 flex items-center gap-8"
-              >
-                {[
-                  { icon: <Users className="w-4 h-4" />, label: 'Players online', value: '120+' },
-                  { icon: <Trophy className="w-4 h-4" />, label: 'Games played', value: '1.2k+' },
-                  { icon: <Star className="w-4 h-4" />, label: 'Festival fun', value: '100%' },
-                ].map((stat) => (
-                  <div key={stat.label} className="flex items-center gap-2">
-                    <div className="text-primary">{stat.icon}</div>
-                    <div>
-                      <div className="font-bold text-bappa-text">{stat.value}</div>
-                      <div className="text-xs text-bappa-muted">{stat.label}</div>
-                    </div>
-                  </div>
-                ))}
-              </motion.div>
+              {/* Feature Chips */}
+              <div className="grid grid-cols-3 gap-2.5 mb-8">
+                <div className="bg-surface/90 rounded-2xl p-3 text-center border border-pastel-lavender/50">
+                  <div className="text-xs font-bold text-bappa-text">Timed</div>
+                  <div className="text-[11px] text-bappa-muted">25s Rounds</div>
+                </div>
+                <div className="bg-surface/90 rounded-2xl p-3 text-center border border-pastel-lavender/50">
+                  <div className="text-xs font-bold text-bappa-text">Multi-type</div>
+                  <div className="text-[11px] text-bappa-muted">MCQ & Blanks</div>
+                </div>
+                <div className="bg-surface/90 rounded-2xl p-3 text-center border border-pastel-lavender/50">
+                  <div className="text-xs font-bold text-bappa-text">Points</div>
+                  <div className="text-[11px] text-bappa-muted">Live Scores</div>
+                </div>
+              </div>
             </div>
 
-            {/* Hero illustration */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, rotate: -3 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              transition={{ duration: 0.7, ease: 'easeOut' }}
-              className="relative flex justify-center"
+            <Link
+              href="/quiz"
+              className="btn-primary w-full py-4 text-base font-black shadow-pastel flex items-center justify-center gap-2"
             >
-              <div className="relative w-80 h-80 md:w-96 md:h-96">
-                {/* Main circle */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary-light via-surface to-maroon-light border-4 border-bappa-border shadow-card-lg flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="w-24 h-24 rounded-full bg-primary-light flex items-center justify-center mx-auto mb-3 shadow-inner">
-                      <Flame className="w-14 h-14 text-primary" />
-                    </div>
-                    <div className="font-black text-2xl text-bappa-text">BappaVerse</div>
-                    <div className="text-bappa-muted text-sm mt-1">Festival Gaming Platform</div>
-                  </div>
+              <Play className="w-5 h-5 fill-white" /> Play Quiz Now
+            </Link>
+          </motion.div>
+
+          {/* Card 2: Housie (Pastel Blue + Mint Identity) */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.45, delay: 0.1 }}
+            className="rounded-4xl p-8 bg-housie-gradient border-2 border-pastel-blue shadow-card hover:shadow-card-hover hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div className="w-16 h-16 rounded-3xl bg-pastel-blue text-[#204068] flex items-center justify-center shadow-xs">
+                  <Ticket className="w-8 h-8" />
                 </div>
-
-                {/* Floating cards */}
-                <motion.div
-                  animate={{ y: [-6, 6, -6] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                  className="absolute -top-4 -left-8 card shadow-card-hover p-3"
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-primary-light rounded-lg flex items-center justify-center text-primary">
-                      <BookOpen className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold">Quiz</div>
-                      <div className="text-xs text-bappa-muted">10 questions</div>
-                    </div>
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  animate={{ y: [6, -6, 6] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-                  className="absolute -bottom-4 -right-8 card shadow-card-hover p-3"
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-gold-light rounded-lg flex items-center justify-center text-gold-dark">
-                      <Grid3X3 className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold">Housie</div>
-                      <div className="text-xs text-bappa-muted">Live game</div>
-                    </div>
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  animate={{ y: [-4, 4, -4] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-                  className="absolute top-1/2 -right-12 card shadow-card-hover p-3"
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-success-light rounded-lg flex items-center justify-center text-success">
-                      <Trophy className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold">Win!</div>
-                      <div className="text-xs text-bappa-muted">50 pts</div>
-                    </div>
-                  </div>
-                </motion.div>
+                <span className="badge-blue font-bold text-xs px-3 py-1">
+                  Live Multiplayer
+                </span>
               </div>
-            </motion.div>
-          </div>
+
+              <span className="text-xs font-black tracking-wider uppercase text-pastel-blue-dark">
+                Multicolor Tambola Room
+              </span>
+              <h3 className="text-3xl font-black text-bappa-text mt-1 mb-3">
+                Bappa Housie
+              </h3>
+              <p className="text-bappa-secondary text-sm sm:text-base leading-relaxed mb-6">
+                Join a festive Tambola game, receive a 3 × 9 pastel ticket, daub numbers as they are called in real time, and claim Early 5, Lines, or Full House!
+              </p>
+
+              {/* Feature Chips */}
+              <div className="grid grid-cols-3 gap-2.5 mb-8">
+                <div className="bg-surface/90 rounded-2xl p-3 text-center border border-pastel-blue/50">
+                  <div className="text-xs font-bold text-bappa-text">1–90</div>
+                  <div className="text-[11px] text-bappa-muted">Live Calling</div>
+                </div>
+                <div className="bg-surface/90 rounded-2xl p-3 text-center border border-pastel-blue/50">
+                  <div className="text-xs font-bold text-bappa-text">Patterns</div>
+                  <div className="text-[11px] text-bappa-muted">5 Ways to Win</div>
+                </div>
+                <div className="bg-surface/90 rounded-2xl p-3 text-center border border-pastel-blue/50">
+                  <div className="text-xs font-bold text-bappa-text">Auto Daub</div>
+                  <div className="text-[11px] text-bappa-muted">Tap to Mark</div>
+                </div>
+              </div>
+            </div>
+
+            <Link
+              href="/dashboard/housie"
+              className="btn-blue w-full py-4 text-base font-black shadow-pastel-blue flex items-center justify-center gap-2 text-[#1A365D]"
+            >
+              <Zap className="w-5 h-5" /> Join Housie Game
+            </Link>
+          </motion.div>
         </div>
       </section>
 
-      {/* ─── Choose Your Game ──────────────────────────────────────────── */}
-      <section id="games" className="py-20 bg-background">
+      {/* ─── How To Play 3 Simple Steps ─────────────────────────────── */}
+      <section className="py-16 bg-surface-secondary/70 border-y border-bappa-border/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <div className="badge-saffron mb-4 mx-auto w-fit">Choose Your Game</div>
-            <h2 className="text-4xl font-black text-bappa-text">
-              Two Exciting <span className="text-gradient-saffron">Festival Games</span>
+          <div className="text-center mb-12">
+            <span className="badge-peach text-xs font-bold uppercase tracking-wider mb-2">
+              Game Night Flow
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-bappa-text">
+              Three Simple Steps to Win
             </h2>
-            <p className="mt-3 text-bappa-muted max-w-md mx-auto">
-              Test your knowledge or join a live Housie room — both games celebrate the spirit of Ganapati.
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Quiz Card */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="card-festive group hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300"
-            >
-              <div className="flex items-start justify-between mb-6">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-primary-light rounded-2xl flex items-center justify-center shadow-sm flex-shrink-0">
-                  <BookOpen className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
-                </div>
-                <span className="badge-saffron">Knowledge</span>
-              </div>
-              <h3 className="text-2xl font-bold text-bappa-text mb-2">Ganapati Quiz</h3>
-              <p className="text-bappa-muted leading-relaxed mb-6">
-                Test your knowledge of Ganapati traditions, Maharashtra culture, modak recipes,
-                history, and festival celebrations across authentic categories.
-              </p>
-              <div className="grid grid-cols-3 gap-3 mb-6">
-                {[
-                  { icon: <HelpCircle className="w-5 h-5 text-primary mx-auto mb-1" />, label: '50+ Questions' },
-                  { icon: <Clock className="w-5 h-5 text-primary mx-auto mb-1" />, label: 'Timed Rounds' },
-                  { icon: <Trophy className="w-5 h-5 text-primary mx-auto mb-1" />, label: 'Leaderboard' },
-                ].map((f) => (
-                  <div key={f.label} className="bg-surface rounded-xl p-3 text-center border border-bappa-border">
-                    <div>{f.icon}</div>
-                    <div className="text-xs font-semibold text-bappa-text">{f.label}</div>
-                  </div>
-                ))}
-              </div>
-              <Link href="/dashboard/quiz" className="btn-primary w-full justify-center">
-                <Play className="w-4 h-4" /> Play Quiz
-              </Link>
-            </motion.div>
-
-            {/* Housie Card */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="card-festive group hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300"
-            >
-              <div className="flex items-start justify-between mb-6">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-maroon-light rounded-2xl flex items-center justify-center shadow-sm flex-shrink-0">
-                  <Ticket className="w-7 h-7 sm:w-8 sm:h-8 text-maroon" />
-                </div>
-                <span className="badge-maroon">Live Multiplayer</span>
-              </div>
-              <h3 className="text-2xl font-bold text-bappa-text mb-2">Bappa Housie</h3>
-              <p className="text-bappa-muted leading-relaxed mb-6">
-                Join a live Tambola game, get your unique ticket, mark called numbers in real time,
-                and be the first to claim Early Five, Top Line, or Full House.
-              </p>
-              <div className="grid grid-cols-3 gap-3 mb-6">
-                {[
-                  { icon: <Grid3X3 className="w-5 h-5 text-maroon mx-auto mb-1" />, label: '1-90 Numbers' },
-                  { icon: <Users className="w-5 h-5 text-maroon mx-auto mb-1" />, label: 'Live Players' },
-                  { icon: <Zap className="w-5 h-5 text-maroon mx-auto mb-1" />, label: 'Real-time' },
-                ].map((f) => (
-                  <div key={f.label} className="bg-surface rounded-xl p-3 text-center border border-bappa-border">
-                    <div>{f.icon}</div>
-                    <div className="text-xs font-semibold text-bappa-text">{f.label}</div>
-                  </div>
-                ))}
-              </div>
-              <Link href="/dashboard/housie" className="btn-maroon w-full justify-center">
-                <Zap className="w-4 h-4" /> Join Housie
-              </Link>
-            </motion.div>
           </div>
-        </div>
-      </section>
 
-      {/* ─── How It Works ─────────────────────────────────────────────── */}
-      <section className="py-20 bg-surface-secondary">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <div className="badge-gold mb-4 mx-auto w-fit">How It Works</div>
-            <h2 className="text-4xl font-black text-bappa-text">
-              Three Simple <span className="text-gradient-gold">Steps</span>
-            </h2>
-          </motion.div>
-
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-6">
             {[
               {
                 step: '01',
-                icon: <Users className="w-7 h-7" />,
-                title: 'Create Account',
-                desc: 'Register with your name and email. Get instant access to all games and your personal dashboard.',
-                color: 'text-primary bg-primary-light',
+                title: 'Enter Room Code',
+                desc: 'Get the 6-character room code from your host or screen and join in 2 seconds.',
+                badge: 'bg-pastel-pink',
+                icon: '🔑',
               },
               {
                 step: '02',
-                icon: <Play className="w-7 h-7" />,
-                title: 'Join a Game',
-                desc: 'Play the Ganapati Quiz solo or enter a Housie room with a unique code. Get your ticket instantly.',
-                color: 'text-maroon bg-maroon-light',
+                title: 'Play Live in Real Time',
+                desc: 'Answer quiz questions synchronously or daub called numbers on your pastel ticket.',
+                badge: 'bg-pastel-blue',
+                icon: '🎮',
               },
               {
                 step: '03',
-                icon: <Trophy className="w-7 h-7" />,
-                title: 'Win & Celebrate',
-                desc: 'Earn points, climb the leaderboard, and celebrate your wins on the BappaVerse festival stage.',
-                color: 'text-gold-dark bg-gold-light',
+                title: 'Claim & Celebrate',
+                desc: 'Claim winning patterns, win festival points, and climb the community leaderboard!',
+                badge: 'bg-pastel-yellow',
+                icon: '🏆',
               },
-            ].map((item, i) => (
+            ].map((s, idx) => (
               <motion.div
-                key={item.step}
-                custom={i}
+                key={s.step}
+                custom={idx}
                 variants={fadeUp}
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true }}
-                className="card text-center"
+                className="card text-center p-7"
               >
-                <div className="relative inline-block mb-6">
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto ${item.color}`}>
-                    {item.icon}
-                  </div>
-                  <div className="absolute -top-2 -right-2 w-7 h-7 bg-bappa-text text-white text-xs font-bold rounded-full flex items-center justify-center">
-                    {item.step}
-                  </div>
+                <div className={`w-14 h-14 ${s.badge} rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl shadow-xs`}>
+                  {s.icon}
                 </div>
-                <h3 className="text-xl font-bold text-bappa-text mb-2">{item.title}</h3>
-                <p className="text-bappa-muted leading-relaxed">{item.desc}</p>
+                <div className="text-xs font-black uppercase tracking-widest text-primary mb-1">
+                  Step {s.step}
+                </div>
+                <h3 className="text-xl font-black text-bappa-text mb-2">{s.title}</h3>
+                <p className="text-bappa-secondary text-sm leading-relaxed">{s.desc}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ─── Housie Feature Highlight ─────────────────────────────────── */}
-      <section className="py-20 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-            >
-              <div className="badge-maroon mb-4">Live Housie Feature</div>
-              <h2 className="text-4xl font-black text-bappa-text mb-4">
-                Real-Time Tambola,<br />
-                <span className="text-gradient-maroon">Festival Style</span>
-              </h2>
-              <p className="text-bappa-muted leading-relaxed mb-6">
-                Our Housie game is fully real-time. Every number called by the Host appears
-                instantly on your ticket. Mark it, claim it, and celebrate with everyone.
-              </p>
-              <div className="space-y-3">
-                {[
-                  { icon: <Shield className="w-5 h-5" />, text: 'Server-verified winning claims' },
-                  { icon: <Zap className="w-5 h-5" />, text: 'Instant number broadcasting' },
-                  { icon: <Users className="w-5 h-5" />, text: 'Host sees all player tickets live' },
-                  { icon: <Award className="w-5 h-5" />, text: 'Multiple winning patterns' },
-                  { icon: <Clock className="w-5 h-5" />, text: 'Auto or manual number calling' },
-                ].map((f) => (
-                  <div key={f.text} className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-maroon-light text-maroon rounded-lg flex items-center justify-center flex-shrink-0">
-                      {f.icon}
-                    </div>
-                    <span className="text-bappa-text font-medium">{f.text}</span>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
+      {/* ─── Leaderboard Podium Preview ─────────────────────────────── */}
+      <section className="py-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-10">
+          <span className="badge-yellow text-xs font-bold uppercase tracking-wider mb-2">
+            Festival Hall of Fame
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-black text-bappa-text">
+            Top Festival Champions
+          </h2>
+        </div>
 
-            {/* Ticket preview */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="card shadow-card-lg"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <div className="font-bold text-bappa-text">Your Ticket</div>
-                  <div className="text-xs text-bappa-muted">TKT-2024-0042</div>
-                </div>
-                <div className="badge-saffron">8/15 marked</div>
+        <div className="card shadow-card-lg p-6 sm:p-8">
+          {/* Top 3 Podium Cards */}
+          <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6 pt-2 pb-4 border-b border-bappa-border">
+            {/* 2nd Place (Pastel Blue) */}
+            <div className="bg-pastel-blue/40 border border-pastel-blue rounded-3xl p-3.5 text-center flex flex-col items-center justify-end">
+              <span className="text-2xl mb-1">🥈</span>
+              <div className="w-10 h-10 rounded-full bg-pastel-blue text-[#204068] font-black text-sm flex items-center justify-center mb-1">
+                {LEADERBOARD_PREVIEW[1].avatar}
               </div>
-              {/* Demo ticket */}
-              <div className="ticket-grid mb-4">
-                {[
-                  [3, null, 21, null, 45, null, 63, null, 82],
-                  [null, 14, null, 37, null, 52, null, 74, null],
-                  [8, null, 28, null, 49, null, 67, null, 88],
-                ].map((row, ri) =>
-                  row.map((cell, ci) =>
-                    cell === null ? (
-                      <div key={`${ri}-${ci}`} className="ticket-cell-blank" />
-                    ) : (
-                      <div
-                        key={`${ri}-${ci}`}
-                        className={
-                          [3, 21, 14, 37, 52, 8, 67, 88].includes(cell)
-                            ? 'ticket-cell-marked'
-                            : 'ticket-cell-number'
-                        }
-                      >
-                        {cell}
-                      </div>
-                    )
-                  )
-                )}
+              <div className="font-bold text-xs sm:text-sm text-bappa-text truncate max-w-full">
+                {LEADERBOARD_PREVIEW[1].name}
               </div>
-              <div className="bg-primary-light rounded-xl p-3 flex items-center justify-between">
-                <div>
-                  <div className="text-xs text-bappa-muted">Last called</div>
-                  <div className="text-2xl font-black text-primary">67</div>
+              <div className="text-xs font-black text-pastel-blue-dark mt-0.5">
+                {LEADERBOARD_PREVIEW[1].points} pts
+              </div>
+            </div>
+
+            {/* 1st Place (Pastel Yellow - Elevated) */}
+            <div className="bg-pastel-yellow/45 border-2 border-pastel-yellow-dark rounded-3xl p-4 text-center flex flex-col items-center justify-end -translate-y-2 shadow-pastel-yellow">
+              <span className="text-3xl mb-1">🥇</span>
+              <div className="w-12 h-12 rounded-full bg-pastel-yellow text-[#5A4108] font-black text-base flex items-center justify-center mb-1.5 ring-2 ring-pastel-yellow-dark/50">
+                {LEADERBOARD_PREVIEW[0].avatar}
+              </div>
+              <div className="font-black text-xs sm:text-sm text-bappa-text truncate max-w-full">
+                {LEADERBOARD_PREVIEW[0].name}
+              </div>
+              <div className="text-xs sm:text-sm font-black text-gold-dark mt-0.5">
+                {LEADERBOARD_PREVIEW[0].points} pts
+              </div>
+            </div>
+
+            {/* 3rd Place (Pastel Pink) */}
+            <div className="bg-pastel-pink/40 border border-pastel-pink rounded-3xl p-3.5 text-center flex flex-col items-center justify-end">
+              <span className="text-2xl mb-1">🥉</span>
+              <div className="w-10 h-10 rounded-full bg-pastel-pink text-[#9B2C2C] font-black text-sm flex items-center justify-center mb-1">
+                {LEADERBOARD_PREVIEW[2].avatar}
+              </div>
+              <div className="font-bold text-xs sm:text-sm text-bappa-text truncate max-w-full">
+                {LEADERBOARD_PREVIEW[2].name}
+              </div>
+              <div className="text-xs font-black text-maroon mt-0.5">
+                {LEADERBOARD_PREVIEW[2].points} pts
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2.5">
+            {LEADERBOARD_PREVIEW.slice(3).map((p) => (
+              <div
+                key={p.rank}
+                className="flex items-center justify-between p-3 rounded-2xl bg-surface-secondary/50 border border-bappa-border/60"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="w-6 text-center font-bold text-xs text-bappa-muted">
+                    #{p.rank}
+                  </span>
+                  <div className={`w-8 h-8 rounded-xl ${p.color} font-bold text-xs flex items-center justify-center text-bappa-text`}>
+                    {p.avatar}
+                  </div>
+                  <span className="font-bold text-sm text-bappa-text">{p.name}</span>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs text-bappa-muted">Early Five</div>
-                  <div className="font-bold text-success text-sm">Completed!</div>
+                  <span className="font-black text-sm text-primary">{p.points}</span>
+                  <span className="text-xs text-bappa-muted ml-1">pts</span>
                 </div>
               </div>
-            </motion.div>
+            ))}
+          </div>
+
+          <div className="mt-6 pt-4 border-t border-bappa-border text-center">
+            <Link href="/leaderboard" className="btn-outline btn-sm inline-flex items-center gap-2">
+              View Full Leaderboard <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* ─── Leaderboard Preview ──────────────────────────────────────── */}
-      <section className="py-20 bg-surface-secondary">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-10"
-          >
-            <div className="badge-gold mb-4 mx-auto w-fit">Top Players</div>
-            <h2 className="text-4xl font-black text-bappa-text">
-              Festival <span className="text-gradient-gold">Leaderboard</span>
-            </h2>
-          </motion.div>
-
-          <div className="max-w-2xl mx-auto">
-            <div className="card">
-              {LEADERBOARD_PREVIEW.map((player, i) => (
-                <motion.div
-                  key={player.rank}
-                  custom={i}
-                  variants={fadeUp}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  className={`flex items-center gap-4 py-3 ${i < LEADERBOARD_PREVIEW.length - 1 ? 'border-b border-bappa-border' : ''}`}
-                >
-                  <div className={`w-8 text-center font-bold text-sm ${i < 3 ? 'text-primary font-black' : 'text-bappa-muted'}`}>
-                    #{i + 1}
-                  </div>
-                  <div className="w-10 h-10 rounded-full bg-primary-light text-primary font-bold flex items-center justify-center text-sm">
-                    {player.avatar}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-bappa-text">{player.name}</div>
-                    <div className="text-xs text-bappa-muted">{player.wins} wins</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-bold text-gold-dark">{player.points.toLocaleString()}</div>
-                    <div className="text-xs text-bappa-muted">points</div>
-                  </div>
-                </motion.div>
-              ))}
-              <div className="mt-4 pt-4 border-t border-bappa-border">
-                <Link href="/leaderboard" className="btn-outline w-full justify-center">
-                  View Full Leaderboard <ChevronRight className="w-4 h-4" />
-                </Link>
-              </div>
+      {/* ─── Footer ─────────────────────────────────────────────────── */}
+      <footer className="bg-surface border-t border-bappa-border py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-pastel-lavender flex items-center justify-center text-primary text-sm font-black">
+              ✨
             </div>
+            <span className="font-black text-base text-bappa-text">BappaVerse</span>
+            <span className="text-xs text-bappa-muted">— Ganapati Festival Gaming Lounge</span>
           </div>
-        </div>
-      </section>
 
-      {/* ─── CTA ──────────────────────────────────────────────────────── */}
-      <section className="py-20 bg-background">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="card-festive bg-gradient-to-br from-primary-light to-surface-secondary border-primary/20 py-16"
-          >
-            <div className="w-14 h-14 bg-primary-light rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Flame className="w-8 h-8 text-primary" />
-            </div>
-            <h2 className="text-4xl font-black text-bappa-text mb-4">
-              Ganpati Bappa Morya!
-            </h2>
-            <p className="text-bappa-muted text-lg mb-8 max-w-md mx-auto">
-              Join thousands of players celebrating Ganapati with fun, knowledge, and friendly competition.
-            </p>
-            <div className="flex flex-wrap gap-4 justify-center">
-              <Link href="/register" className="btn-primary btn-lg">
-                Create Free Account
-              </Link>
-              <Link href="/login" className="btn-outline btn-lg">
-                Sign In
-              </Link>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+          <div className="flex items-center gap-6 text-xs font-bold text-bappa-secondary">
+            <Link href="/quiz" className="hover:text-primary transition-colors">Aarti Quiz</Link>
+            <Link href="/dashboard/housie" className="hover:text-primary transition-colors">Bappa Housie</Link>
+            <Link href="/leaderboard" className="hover:text-primary transition-colors">Leaderboard</Link>
+            <Link href="/dashboard/profile" className="hover:text-primary transition-colors">My Profile</Link>
+          </div>
 
-      {/* ─── Footer ───────────────────────────────────────────────────── */}
-      <footer className="bg-bappa-text text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-8 mb-8">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white flex-shrink-0">
-                  <Flame className="w-4 h-4 text-white" />
-                </div>
-                <span className="font-black text-xl">BappaVerse</span>
-              </div>
-              <p className="text-white/60 text-sm leading-relaxed">
-                A Ganapati festival gaming platform bringing people together through
-                fun, knowledge, and celebration.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4 text-white/80">Games</h4>
-              <ul className="space-y-2 text-white/60 text-sm">
-                <li><Link href="/dashboard/quiz" className="hover:text-white transition-colors">Ganapati Quiz</Link></li>
-                <li><Link href="/dashboard/housie" className="hover:text-white transition-colors">Bappa Housie</Link></li>
-                <li><Link href="/leaderboard" className="hover:text-white transition-colors">Leaderboard</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4 text-white/80">Account</h4>
-              <ul className="space-y-2 text-white/60 text-sm">
-                <li><Link href="/login" className="hover:text-white transition-colors">Log In</Link></li>
-                <li><Link href="/register" className="hover:text-white transition-colors">Register</Link></li>
-                <li><Link href="/dashboard" className="hover:text-white transition-colors">Dashboard</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-white/50 text-sm">
-              © 2024 BappaVerse. Made with love for Ganesh Chaturthi.
-            </p>
-            <div className="flex items-center gap-1.5 text-white/60 text-sm">
-              <Sparkles className="w-4 h-4 text-gold" />
-              <span>Ganpati Bappa Morya!</span>
-            </div>
-          </div>
+          <p className="text-xs text-bappa-muted">
+            Celebrate with joy & friendly competition 🌸
+          </p>
         </div>
       </footer>
     </div>

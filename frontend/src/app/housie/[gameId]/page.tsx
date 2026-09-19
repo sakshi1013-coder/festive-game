@@ -498,27 +498,29 @@ export default function HousieGamePage() {
         )}
 
         <div className="grid md:grid-cols-3 gap-6">
-          {/* Current Number + Called History */}
+          {/* Left Col: Latest Number + Called History */}
           <div className="space-y-4">
-            {/* Current number display (Interactive on-screen click) */}
-            <div className="card text-center relative overflow-hidden">
-              <div className="text-xs text-bappa-muted font-semibold uppercase tracking-wider mb-3">Current Number</div>
+            {/* Latest Number card */}
+            <div className="card text-center relative overflow-hidden bg-pastel-yellow/35 border-2 border-pastel-yellow-dark rounded-4xl p-6 shadow-pastel-yellow">
+              <div className="text-[11px] font-black text-[#5A4108] uppercase tracking-widest mb-3">
+                LATEST NUMBER
+              </div>
               {lastNumber ? (
                 <div>
                   <motion.button
                     type="button"
                     key={lastNumber}
                     onClick={() => handleNumberClick(lastNumber)}
-                    whileHover={{ scale: 1.06 }}
+                    whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    animate={newNumberAnim ? { scale: [1, 1.3, 1] } : {}}
-                    transition={{ duration: 0.4 }}
+                    animate={newNumberAnim ? { scale: [1, 1.25, 1] } : {}}
+                    transition={{ duration: 0.35 }}
                     title={`Click ${lastNumber} to mark on your ticket!`}
-                    className="w-24 h-24 rounded-full bg-maroon text-white text-4xl font-black flex items-center justify-center mx-auto shadow-lg relative cursor-pointer ring-4 ring-maroon/20 hover:ring-primary/40 transition-all"
+                    className="w-24 h-24 rounded-3xl bg-pastel-lavender border-2 border-primary text-primary-dark text-4xl font-black flex items-center justify-center mx-auto shadow-pastel relative cursor-pointer ring-4 ring-pastel-lavender/50 transition-all"
                   >
                     {lastNumber}
                     {isLastNumberMarked && (
-                      <span className="absolute -top-1 -right-1 w-7 h-7 bg-success rounded-full flex items-center justify-center text-xs font-bold shadow">
+                      <span className="absolute -top-1 -right-1 w-7 h-7 bg-success text-white rounded-full flex items-center justify-center text-xs font-black shadow">
                         ✓
                       </span>
                     )}
@@ -532,13 +534,13 @@ export default function HousieGamePage() {
                         whileHover={{ scale: 1.04 }}
                         whileTap={{ scale: 0.96 }}
                         onClick={() => handleNumberClick(lastNumber)}
-                        className="px-3.5 py-1.5 rounded-full bg-primary text-white text-xs font-bold shadow-saffron inline-flex items-center gap-1.5 animate-bounce-soft"
+                        className="px-4 py-1.5 rounded-full bg-pastel-mint text-[#1C4D32] border border-pastel-mint-dark text-xs font-black shadow-xs inline-flex items-center gap-1.5"
                       >
                         <Hand className="w-3.5 h-3.5" /> Tap to Mark on Ticket!
                       </motion.button>
                     ) : isLastNumberOnTicket && isLastNumberMarked ? (
-                      <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-success-light text-success text-xs font-semibold">
-                        <CheckCircle className="w-3.5 h-3.5" /> Marked on Your Ticket
+                      <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-pastel-blue-light text-primary-dark text-xs font-bold border border-pastel-blue">
+                        <CheckCircle className="w-3.5 h-3.5 text-success" /> Marked on Ticket
                       </div>
                     ) : (
                       <div className="text-xs text-bappa-muted">
@@ -549,23 +551,25 @@ export default function HousieGamePage() {
                 </div>
               ) : (
                 <div>
-                  <div className="w-24 h-24 rounded-full bg-bappa-border text-bappa-muted text-2xl font-bold flex items-center justify-center mx-auto">
+                  <div className="w-24 h-24 rounded-3xl bg-surface border border-bappa-border text-bappa-muted text-2xl font-bold flex items-center justify-center mx-auto">
                     –
                   </div>
-                  <div className="text-xs text-bappa-muted mt-3">Waiting for first number</div>
+                  <div className="text-xs text-bappa-secondary mt-3">Waiting for first call</div>
                 </div>
               )}
-              <div className="mt-3 text-xs text-bappa-muted font-medium">
-                {calledNumbers.length} / 90 called
+              <div className="mt-3 text-xs text-bappa-secondary font-bold">
+                {calledNumbers.length} / 90 numbers called
               </div>
             </div>
 
-            {/* Last 5 numbers */}
+            {/* Called numbers pills */}
             {calledNumbers.length > 0 && (
-              <div className="card">
-                <div className="text-xs text-bappa-muted font-semibold uppercase tracking-wider mb-3">Recent Numbers</div>
+              <div className="card rounded-3xl border border-bappa-border p-5">
+                <div className="text-[11px] font-black text-bappa-muted uppercase tracking-wider mb-3">
+                  Called Numbers
+                </div>
                 <div className="flex gap-2 flex-wrap">
-                  {[...calledNumbers].reverse().slice(0, 5).map((n, i) => {
+                  {[...calledNumbers].reverse().slice(0, 10).map((n, i) => {
                     const onMyTicket = allTicketNumbers.includes(n);
                     const isMarked = markedNumbers.has(n);
                     return (
@@ -573,15 +577,15 @@ export default function HousieGamePage() {
                         key={n}
                         type="button"
                         onClick={() => handleNumberClick(n)}
-                        title={`Number ${n} - Click to mark`}
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm transition-transform active:scale-95 ${
+                        title={`Number ${n}`}
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs transition-all active:scale-95 ${
                           i === 0
-                            ? 'bg-maroon text-white ring-2 ring-maroon/30 shadow'
+                            ? 'bg-pastel-lavender text-primary-dark border-2 border-primary shadow-xs'
                             : isMarked
-                            ? 'bg-primary text-white shadow-sm'
+                            ? 'bg-pastel-blue text-[#204068] border border-pastel-blue-dark'
                             : onMyTicket
-                            ? 'bg-primary-light text-primary border-2 border-primary font-extrabold'
-                            : 'bg-surface-secondary text-bappa-muted'
+                            ? 'bg-pastel-mint text-[#1C4D32] border border-pastel-mint-dark font-extrabold ring-1 ring-pastel-mint'
+                            : 'bg-surface-secondary text-bappa-secondary border border-bappa-border'
                         }`}
                       >
                         {n}
@@ -593,22 +597,22 @@ export default function HousieGamePage() {
             )}
 
             {/* Progress */}
-            <div className="card">
+            <div className="card rounded-3xl border border-bappa-border p-5">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-semibold text-bappa-text">Your Marked Progress</span>
-                <span className="text-sm font-bold text-primary">{markedCount} / 15</span>
+                <span className="text-xs font-bold text-bappa-secondary uppercase tracking-wider">Your Progress</span>
+                <span className="text-sm font-black text-primary">{markedCount} / 15</span>
               </div>
-              <div className="w-full h-3 bg-bappa-border rounded-full overflow-hidden">
+              <div className="w-full h-2.5 bg-surface-secondary border border-bappa-border rounded-full overflow-hidden">
                 <motion.div
-                  className="h-full bg-primary rounded-full"
+                  className="h-full bg-pastel-mint-dark rounded-full"
                   animate={{ width: `${progressPct}%` }}
-                  transition={{ duration: 0.5 }}
+                  transition={{ duration: 0.4 }}
                 />
               </div>
               <div className="flex items-center justify-between text-xs text-bappa-muted mt-2">
                 <span>{progressPct}% complete</span>
                 {allTicketNumbers.filter((n) => calledSet.has(n) && !markedNumbers.has(n)).length > 0 && (
-                  <span className="text-primary font-medium animate-pulse">
+                  <span className="text-primary font-bold animate-pulse">
                     {allTicketNumbers.filter((n) => calledSet.has(n) && !markedNumbers.has(n)).length} un-marked!
                   </span>
                 )}
@@ -616,36 +620,33 @@ export default function HousieGamePage() {
             </div>
           </div>
 
-          {/* Ticket */}
+          {/* Right Col: Multicolor Pastel Ticket (3 × 9 Grid) */}
           <div className="md:col-span-2 space-y-4">
-            <div className="card">
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div className="card rounded-4xl border border-bappa-border shadow-card p-6 sm:p-7 bg-surface">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
                 <div>
-                  <div className="font-bold text-bappa-text flex items-center gap-2">
-                    Your Ticket
-                    <span className="text-xs font-normal text-bappa-muted">
-                      (Tap called numbers to mark)
-                    </span>
+                  <div className="font-black text-lg sm:text-xl text-bappa-text flex items-center gap-2">
+                    <span>Multicolor Housie Ticket</span>
                   </div>
-                  <div className="text-xs text-bappa-muted font-mono">
-                    ID: {ticket?._id?.slice(-8).toUpperCase()}
+                  <div className="text-xs text-bappa-muted font-mono mt-0.5">
+                    ID: #{ticket?._id?.slice(-6).toUpperCase()}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={handleMarkAllCalled}
-                    className="text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-primary text-primary hover:bg-primary-light/40 transition-all flex items-center gap-1"
+                    className="text-xs font-bold px-3 py-1.5 rounded-xl border border-primary/40 bg-pastel-lavender-light text-primary hover:bg-pastel-lavender transition-all flex items-center gap-1"
                     title="Mark all numbers called so far"
                   >
                     <Sparkles className="w-3.5 h-3.5" /> Mark All Called
                   </button>
-                  <div className="badge-saffron font-bold text-xs">{markedCount} / 15 marked</div>
+                  <span className="badge-blue font-black text-xs">{markedCount} / 15 marked</span>
                 </div>
               </div>
 
               {ticket && ticket.ticketGrid && Array.isArray(ticket.ticketGrid) ? (
-                <div className="ticket-grid">
+                <div className="ticket-grid p-3 sm:p-4 rounded-3xl bg-surface-secondary/60 border border-bappa-border shadow-inner">
                   {ticket.ticketGrid.map((row, ri) =>
                     row.map((cell, ci) => {
                       if (cell === null) {
@@ -654,6 +655,14 @@ export default function HousieGamePage() {
                       const isMarked = markedNumbers.has(cell);
                       const isCalled = calledSet.has(cell);
                       const isShaking = shakingNumber === cell;
+                      
+                      // Subtle pastel variation across columns for colorful physical ticket feel
+                      const colColors = [
+                        'bg-[#FDF0F0]', 'bg-[#F0F6FD]', 'bg-[#F1FAF3]',
+                        'bg-[#FAF4FC]', 'bg-[#FFFDF0]', 'bg-[#FDF0F0]',
+                        'bg-[#F0F6FD]', 'bg-[#F1FAF3]', 'bg-[#FAF4FC]'
+                      ];
+                      const normalBg = colColors[ci % colColors.length];
 
                       return (
                         <motion.button
@@ -662,37 +671,37 @@ export default function HousieGamePage() {
                           onClick={() => handleNumberClick(cell)}
                           animate={
                             isShaking
-                              ? { x: [-6, 6, -5, 5, -3, 3, 0] }
+                              ? { x: [-5, 5, -4, 4, -2, 2, 0] }
                               : isMarked && cell === lastNumber
                               ? { scale: [1, 1.15, 1] }
                               : {}
                           }
                           transition={{ duration: 0.35 }}
-                          className={`relative select-none ${
+                          className={`relative select-none aspect-square w-full rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-base sm:text-xl border transition-all ${
                             isMarked
-                              ? 'ticket-cell-marked'
+                              ? 'bg-pastel-blue text-[#204068] border-pastel-blue-dark shadow-pastel-blue scale-100 ring-2 ring-pastel-blue/60 cursor-pointer active:scale-95'
                               : isCalled
-                              ? 'ticket-cell-number ring-2 ring-primary ring-offset-1 font-extrabold bg-primary-light/40 animate-pulse-soft'
-                              : 'ticket-cell-number'
+                              ? 'bg-pastel-mint text-[#1C4D32] border-pastel-mint-dark ring-2 ring-pastel-mint animate-pulse-soft font-black'
+                              : `${normalBg} border-bappa-border text-bappa-text hover:border-primary/40 active:scale-95 cursor-pointer shadow-2xs`
                           }`}
                           title={
                             isMarked
-                              ? `Number ${cell} is marked! Click to unmark.`
+                              ? `Number ${cell} is marked!`
                               : isCalled
-                              ? `Number ${cell} WAS CALLED! Click to mark!`
-                              : `Number ${cell} has not been called yet.`
+                              ? `Number ${cell} was called! Click to mark.`
+                              : `Number ${cell}`
                           }
                         >
                           <span>{cell}</span>
                           {isMarked && (
-                            <span className="absolute top-0.5 right-1 text-[10px] font-black leading-none text-white/95">
+                            <span className="absolute top-0.5 right-1 text-[10px] sm:text-xs font-black leading-none text-[#204068]">
                               ✓
                             </span>
                           )}
                           {isCalled && !isMarked && (
                             <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary"></span>
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
                             </span>
                           )}
                         </motion.button>
@@ -707,10 +716,10 @@ export default function HousieGamePage() {
 
             {/* Winning patterns + claim buttons */}
             {game?.activePatterns && game.activePatterns.length > 0 && (
-              <div className="card">
+              <div className="card rounded-4xl border border-bappa-border p-6 bg-surface">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="font-bold text-bappa-text">Winning Patterns</div>
-                  <div className="text-xs text-bappa-muted">Mark your numbers to claim prizes</div>
+                  <div className="font-black text-bappa-text text-base">Winning Patterns</div>
+                  <div className="text-xs text-bappa-muted font-medium">Claim prize when your lines are complete</div>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {game.activePatterns.map((pattern) => {
@@ -720,27 +729,32 @@ export default function HousieGamePage() {
                     return (
                       <div
                         key={pattern}
-                        className={`rounded-xl p-3 border-2 transition-all ${
-                          claimSt === 'approved' ? 'border-gold bg-gold-light' :
-                          isCompleted ? 'border-success bg-success-light' :
-                          'border-bappa-border bg-surface'
+                        className={`rounded-2xl p-3.5 border transition-all ${
+                          claimSt === 'approved'
+                            ? 'border-pastel-yellow-dark bg-pastel-yellow/40 text-[#5A4108]'
+                            : isCompleted
+                            ? 'border-pastel-mint-dark bg-pastel-mint/40 text-[#1C4D32]'
+                            : 'border-bappa-border bg-surface-secondary/50'
                         }`}
                       >
-                        <div className="text-xs font-bold text-bappa-text mb-2">
+                        <div className="text-xs font-black text-bappa-text mb-2">
                           {PATTERN_LABELS[pattern] || pattern}
                         </div>
                         {claimSt === 'approved' ? (
-                          <div className="flex items-center gap-1 text-xs text-gold-dark font-semibold">
-                            <Trophy className="w-3 h-3" /> Won!
+                          <div className="flex items-center gap-1 text-xs text-gold-dark font-black">
+                            <Trophy className="w-3.5 h-3.5" /> Claim Approved!
                           </div>
                         ) : claimSt === 'pending' ? (
-                          <div className="text-xs text-bappa-muted">Pending…</div>
+                          <div className="text-xs text-primary font-bold animate-pulse">
+                            Host Verifying…
+                          </div>
                         ) : claimSt === 'rejected' ? (
-                          <div className="text-xs text-error font-medium">Rejected</div>
+                          <div className="text-xs text-error font-bold">Claim Rejected</div>
                         ) : isCompleted ? (
                           <button
+                            type="button"
                             onClick={() => claimWin(pattern)}
-                            className="btn-primary btn-sm w-full text-xs py-1.5 shadow-sm hover:shadow"
+                            className="btn-mint btn-sm w-full text-xs py-2 shadow-xs hover:shadow"
                           >
                             Claim Win!
                           </button>

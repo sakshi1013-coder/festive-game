@@ -263,57 +263,62 @@ export default function ControlRoom() {
     return (
       <div className="flex items-center justify-center min-h-96">
         <div className="text-center">
-          <div className="w-14 h-14 bg-primary-light rounded-2xl flex items-center justify-center mx-auto mb-3">
-            <Gamepad2 className="w-7 h-7 text-primary" />
+          <div className="w-16 h-16 bg-pastel-lavender/60 rounded-3xl flex items-center justify-center mx-auto mb-3 shadow-pastel-sm">
+            <Gamepad2 className="w-8 h-8 text-primary" />
           </div>
-          <p className="text-bappa-muted font-medium">Loading Control Room…</p>
+          <p className="text-bappa-text font-bold text-lg">Loading Control Room…</p>
+          <p className="text-bappa-muted text-xs mt-1">Connecting to live game table</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="page-transition space-y-6">
+    <div className="page-transition space-y-6 max-w-7xl mx-auto">
       {/* ─── Header ──────────────────────────────────────────────── */}
-      <div className="card">
+      <div className="bg-white rounded-3xl p-6 sm:p-7 border border-pastel-border/80 shadow-pastel-sm">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl font-black text-bappa-text">{game?.name}</h1>
-              <span className={`badge ${STATUS_COLORS[game?.status || 'open']}`}>{game?.status}</span>
-              <div className={`flex items-center gap-1 text-xs font-medium ${connected ? 'text-success' : 'text-error'}`}>
+            <div className="flex items-center gap-3 mb-1.5">
+              <h1 className="text-2xl sm:text-3xl font-black text-bappa-text tracking-tight">{game?.name}</h1>
+              <span className="px-3 py-0.5 rounded-full text-xs font-black uppercase tracking-wider bg-pastel-mint text-bappa-text">
+                {game?.status}
+              </span>
+              <div className={`flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full ${connected ? 'bg-pastel-mint/80 text-emerald-800' : 'bg-pastel-pink/80 text-rose-800'}`}>
                 {connected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
-                {connected ? 'Live' : 'Offline'}
+                {connected ? 'Live Sync' : 'Reconnecting'}
               </div>
             </div>
-            <div className="flex items-center gap-4 text-sm text-bappa-muted">
-              <span>Code: <strong className="font-mono text-primary text-base tracking-widest">{game?.roomCode}</strong></span>
-              <span><Users className="w-3.5 h-3.5 inline" /> {tickets.length} players</span>
-              <span>{calledNumbers.length}/90 called</span>
+            <div className="flex flex-wrap items-center gap-4 text-xs sm:text-sm text-bappa-muted">
+              <span>Room Code: <strong className="font-mono text-primary text-base font-black tracking-widest px-2 py-0.5 rounded-lg bg-pastel-blue/40">{game?.roomCode}</strong></span>
+              <span className="flex items-center gap-1 font-semibold"><Users className="w-4 h-4 text-primary" /> {tickets.length} players</span>
+              <span className="font-semibold text-bappa-text">{calledNumbers.length}/90 called</span>
               {pendingClaims.length > 0 && (
-                <span className="badge-error">{pendingClaims.length} pending claims</span>
+                <span className="px-2.5 py-0.5 rounded-full bg-pastel-yellow text-amber-900 font-bold text-xs animate-pulse">
+                  ⚡ {pendingClaims.length} claims pending
+                </span>
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             {game?.status === 'open' && (
-              <button onClick={startGame} className="btn-primary">
-                <Play className="w-4 h-4" /> Start Game
+              <button onClick={startGame} className="btn-primary shadow-pastel-sm gap-2">
+                <Play className="w-4 h-4" /> Start Round
               </button>
             )}
             {game?.status === 'started' && (
-              <button onClick={pauseGame} className="btn-outline">
+              <button onClick={pauseGame} className="btn-outline gap-2">
                 <Pause className="w-4 h-4" /> Pause
               </button>
             )}
             {game?.status === 'paused' && (
-              <button onClick={resumeGame} className="btn-primary">
+              <button onClick={resumeGame} className="btn-primary shadow-pastel-sm gap-2">
                 <Play className="w-4 h-4" /> Resume
               </button>
             )}
             {['started', 'paused', 'open'].includes(game?.status || '') && (
-              <button onClick={endGame} className="btn-outline text-error border-error hover:bg-error hover:text-white">
-                <Square className="w-4 h-4" /> End Game
+              <button onClick={endGame} className="px-4 py-2.5 rounded-2xl text-xs font-bold text-rose-600 bg-pastel-pink/30 hover:bg-pastel-pink/70 border border-pastel-pink transition-all flex items-center gap-1.5">
+                <Square className="w-3.5 h-3.5" /> End Round
               </button>
             )}
           </div>
@@ -328,29 +333,31 @@ export default function ControlRoom() {
             initial={{ opacity: 0, y: -10, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="card border-2 border-gold bg-gold-light"
+            className="bg-pastel-yellow/70 border-2 border-pastel-yellow rounded-3xl p-5 shadow-pastel-sm"
           >
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <Trophy className="w-6 h-6 text-gold-dark flex-shrink-0" />
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-amber-800 shadow-pastel-sm flex-shrink-0">
+                  <Trophy className="w-6 h-6" />
+                </div>
                 <div>
-                  <div className="font-bold text-bappa-text">
-                    {(claim as any).playerName || 'A player'} claims <span className="text-gold-dark">{PATTERN_LABELS[claim.pattern]}</span>!
+                  <div className="font-black text-bappa-text text-base">
+                    {(claim as any).playerName || 'A player'} claims <span className="underline decoration-amber-400 font-extrabold">{PATTERN_LABELS[claim.pattern]}</span>!
                   </div>
-                  <div className="text-xs text-bappa-muted font-medium flex items-center gap-1.5 mt-0.5">
-                    Server validation: {claim.serverValidationResult ? (
-                      <span className="text-success font-bold flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> Valid</span>
+                  <div className="text-xs text-bappa-muted font-bold flex items-center gap-1.5 mt-0.5">
+                    Validation: {claim.serverValidationResult ? (
+                      <span className="text-emerald-700 font-bold flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> Legitimate Claim (Numbers Match)</span>
                     ) : (
-                      <span className="text-error font-bold flex items-center gap-1"><XCircle className="w-3.5 h-3.5" /> Invalid</span>
+                      <span className="text-rose-700 font-bold flex items-center gap-1"><XCircle className="w-3.5 h-3.5" /> Numbers Missing</span>
                     )}
                   </div>
                 </div>
               </div>
               <div className="flex gap-2">
-                <button onClick={() => approveClaim(claim._id)} className="btn-primary btn-sm gap-1">
+                <button onClick={() => approveClaim(claim._id)} className="btn-mint btn-sm gap-1.5 font-bold shadow-pastel-sm">
                   <CheckCircle className="w-4 h-4" /> Approve
                 </button>
-                <button onClick={() => rejectClaim(claim._id)} className="btn-outline btn-sm gap-1 text-error border-error">
+                <button onClick={() => rejectClaim(claim._id)} className="btn-pink btn-sm gap-1.5 font-bold shadow-pastel-sm">
                   <XCircle className="w-4 h-4" /> Reject
                 </button>
               </div>
@@ -361,76 +368,76 @@ export default function ControlRoom() {
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* ─── Number Caller ─────────────────────────────────────── */}
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* Current number */}
-          <div className="card text-center">
-            <div className="text-xs text-bappa-muted font-semibold uppercase tracking-wider mb-4">Current Number</div>
+          <div className="bg-white rounded-3xl p-6 border border-pastel-border/80 shadow-pastel-sm text-center">
+            <div className="text-xs text-bappa-muted font-bold uppercase tracking-wider mb-4">Latest Called Ball</div>
             {lastNumber ? (
               <motion.div
                 key={lastNumber}
                 animate={newNumberAnim ? { scale: [0.5, 1.15, 1] } : {}}
                 transition={{ duration: 0.5 }}
-                className="w-28 h-28 rounded-full bg-maroon text-white text-5xl font-black flex items-center justify-center mx-auto shadow-lg mb-3"
+                className="w-28 h-28 rounded-3xl bg-gradient-to-br from-pastel-pink via-pastel-lavender to-pastel-blue text-bappa-text text-5xl font-black flex items-center justify-center mx-auto shadow-pastel mb-3 border-4 border-white"
               >
                 {lastNumber}
               </motion.div>
             ) : (
-              <div className="w-28 h-28 rounded-full bg-bappa-border text-bappa-muted text-3xl font-bold flex items-center justify-center mx-auto mb-3">
+              <div className="w-28 h-28 rounded-3xl bg-pastel-surface border border-pastel-border text-bappa-muted text-3xl font-bold flex items-center justify-center mx-auto mb-3">
                 –
               </div>
             )}
 
             {calledNumbers.length >= 2 && (
               <div className="flex items-center justify-center gap-2 mb-4">
-                <span className="text-xs text-bappa-muted">Previous:</span>
+                <span className="text-xs text-bappa-muted font-semibold">Previous:</span>
                 {[...calledNumbers].reverse().slice(1, 4).map((n) => (
-                  <span key={n} className="w-8 h-8 rounded-lg bg-primary-light text-primary font-bold text-sm flex items-center justify-center">
+                  <span key={n} className="w-8 h-8 rounded-xl bg-pastel-blue/60 text-bappa-text font-bold text-sm flex items-center justify-center shadow-xs">
                     {n}
                   </span>
                 ))}
               </div>
             )}
 
-            <div className="text-sm text-bappa-muted mb-4">
-              {remainingCount} numbers remaining
+            <div className="text-xs text-bappa-muted font-semibold mb-4">
+              {remainingCount} numbers remaining in pouch
             </div>
 
             {/* Call button */}
             <button
               onClick={callNumber}
               disabled={calling || autoCall || !['started', 'open'].includes(game?.status || '') || calledNumbers.length >= 90}
-              className="btn-maroon w-full mb-3 disabled:opacity-50"
+              className="btn-primary w-full mb-3 text-base py-3 shadow-pastel-sm font-black disabled:opacity-50"
             >
               {calling ? (
                 <><RefreshCw className="w-4 h-4 animate-spin" /> Calling…</>
               ) : (
-                <><Zap className="w-4 h-4" /> Call Next Number</>
+                <><Zap className="w-4 h-4" /> Pick Next Number</>
               )}
             </button>
 
             {/* Auto call */}
-            <div className="flex items-center justify-between p-3 bg-surface-secondary rounded-xl">
+            <div className="flex items-center justify-between p-3.5 bg-pastel-surface rounded-2xl border border-pastel-border/60">
               <div>
-                <div className="text-sm font-semibold text-bappa-text">Auto Call</div>
-                <div className="text-xs text-bappa-muted">Every {autoInterval}s</div>
+                <div className="text-xs font-bold text-bappa-text">Auto Call</div>
+                <div className="text-[11px] text-bappa-muted">Every {autoInterval} seconds</div>
               </div>
               <button
                 onClick={toggleAutoCall}
-                className={`relative w-12 h-6 rounded-full transition-colors ${autoCall ? 'bg-primary' : 'bg-bappa-border'}`}
+                className={`relative w-12 h-6 rounded-full transition-colors ${autoCall ? 'bg-primary' : 'bg-pastel-border'}`}
               >
                 <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${autoCall ? 'translate-x-7' : 'translate-x-1'}`} />
               </button>
             </div>
 
             {autoCall && (
-              <div className="flex items-center gap-2 mt-2">
-                <label className="text-xs text-bappa-muted">Interval (s):</label>
+              <div className="flex items-center gap-2 mt-3 justify-center">
+                <label className="text-xs text-bappa-muted font-semibold">Interval (s):</label>
                 <input
                   type="number"
                   value={autoInterval}
                   onChange={(e) => setAutoInterval(parseInt(e.target.value))}
                   min={3} max={60}
-                  className="input-field py-1 px-2 text-sm w-16"
+                  className="bg-pastel-surface border border-pastel-border rounded-xl py-1 px-2 text-xs font-bold text-center w-16 outline-none"
                   onBlur={() => {
                     if (autoCall) {
                       socketRef.current?.emit('toggle-auto-call', { gameId, enabled: true, interval: autoInterval });
@@ -442,19 +449,26 @@ export default function ControlRoom() {
           </div>
 
           {/* Number Board */}
-          <div className="card">
-            <div className="font-bold text-bappa-text mb-3 text-sm">Number Board</div>
-            <div className="number-board">
+          <div className="bg-white rounded-3xl p-5 border border-pastel-border/80 shadow-pastel-sm">
+            <div className="font-bold text-bappa-text mb-3 text-sm flex items-center justify-between">
+              <span>Number Board (1–90)</span>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-pastel-mint text-bappa-text font-bold">
+                {calledNumbers.length} / 90
+              </span>
+            </div>
+            <div className="grid grid-cols-10 gap-1 sm:gap-1.5">
               {Array.from({ length: 90 }, (_, i) => i + 1).map((n) => {
                 const isCalled = calledSet.has(n);
                 const isCurrent = n === lastNumber;
                 return (
                   <div
                     key={n}
-                    className={`number-ball text-xs ${
-                      isCurrent ? 'number-ball-current' :
-                      isCalled ? 'number-ball-called' :
-                      'number-ball-uncalled'
+                    className={`aspect-square rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold transition-all ${
+                      isCurrent
+                        ? 'bg-pastel-yellow text-bappa-text font-black scale-110 shadow-pastel-sm ring-2 ring-pastel-peach z-10'
+                        : isCalled
+                        ? 'bg-pastel-mint text-bappa-text font-black border border-pastel-mint/80'
+                        : 'bg-pastel-surface/60 border border-pastel-border/60 text-bappa-muted/70'
                     }`}
                     title={isCalled ? `${n} - Called` : `${n} - Available`}
                   >
@@ -467,15 +481,15 @@ export default function ControlRoom() {
 
           {/* Approved Winners */}
           {claims.filter((c) => c.status === 'approved').length > 0 && (
-            <div className="card">
+            <div className="bg-white rounded-3xl p-5 border border-pastel-border/80 shadow-pastel-sm">
               <div className="font-bold text-bappa-text mb-3 text-sm flex items-center gap-2">
-                <Trophy className="w-4 h-4 text-gold-dark" /> Winners
+                <Trophy className="w-4 h-4 text-amber-700" /> Confirmed Winners
               </div>
               <div className="space-y-2">
                 {claims.filter((c) => c.status === 'approved').map((c) => (
-                  <div key={c._id} className="flex items-center gap-2 text-sm">
-                    <span className="badge-gold text-xs">{PATTERN_LABELS[c.pattern]}</span>
-                    <span className="text-bappa-muted text-xs">{(c as any).playerName || 'Player'}</span>
+                  <div key={c._id} className="flex items-center justify-between p-2.5 rounded-2xl bg-pastel-yellow/30 border border-pastel-yellow">
+                    <span className="text-xs font-black text-amber-900">{PATTERN_LABELS[c.pattern]}</span>
+                    <span className="text-xs text-bappa-text font-bold">{(c as any).playerName || 'Player'}</span>
                   </div>
                 ))}
               </div>
@@ -486,34 +500,34 @@ export default function ControlRoom() {
         {/* ─── Player Tickets ────────────────────────────────────── */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-bold text-bappa-text flex items-center gap-2">
-              <Users className="w-5 h-5 text-maroon" />
-              Player Tickets ({filteredTickets.length})
+            <h2 className="font-black text-bappa-text text-xl flex items-center gap-2">
+              <Users className="w-5 h-5 text-primary" />
+              Live Tickets ({filteredTickets.length})
             </h2>
-            <button onClick={loadData} className="btn-ghost btn-sm">
-              <RefreshCw className="w-4 h-4" /> Refresh
+            <button onClick={loadData} className="px-3 py-1.5 rounded-xl bg-pastel-surface border border-pastel-border text-xs font-bold text-bappa-text hover:bg-pastel-blue/40 transition-colors flex items-center gap-1.5">
+              <RefreshCw className="w-3.5 h-3.5" /> Sync
             </button>
           </div>
 
           {/* Filter buttons */}
           <div className="flex gap-2 flex-wrap">
             {[
-              { key: 'all', label: 'All' },
+              { key: 'all', label: 'All Players' },
               { key: 'online', label: 'Online' },
-              { key: 'claims', label: 'Claims' },
-              { key: 'early-five', label: 'E5' },
-              { key: 'top-line', label: 'Top' },
-              { key: 'middle-line', label: 'Mid' },
-              { key: 'bottom-line', label: 'Bot' },
-              { key: 'full-house', label: 'FH' },
+              { key: 'claims', label: 'Pending Claims' },
+              { key: 'early-five', label: 'Early 5' },
+              { key: 'top-line', label: 'Top Line' },
+              { key: 'middle-line', label: 'Middle Line' },
+              { key: 'bottom-line', label: 'Bottom Line' },
+              { key: 'full-house', label: 'Full House' },
             ].map((f) => (
               <button
                 key={f.key}
                 onClick={() => setFilter(f.key as Filter)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
                   filter === f.key
-                    ? 'bg-maroon text-white border-maroon'
-                    : 'bg-surface border-bappa-border text-bappa-muted hover:border-maroon hover:text-maroon'
+                    ? 'bg-pastel-blue text-bappa-text border-pastel-blue shadow-xs'
+                    : 'bg-white border-pastel-border text-bappa-muted hover:border-pastel-blue hover:text-bappa-text'
                 }`}
               >
                 {f.label}
@@ -523,12 +537,12 @@ export default function ControlRoom() {
 
           {/* Tickets grid */}
           {filteredTickets.length === 0 ? (
-            <div className="card text-center py-12">
-              <div className="w-14 h-14 bg-primary-light rounded-2xl flex items-center justify-center mx-auto mb-3">
+            <div className="bg-white rounded-3xl border border-pastel-border/80 text-center py-12 px-4 shadow-pastel-sm">
+              <div className="w-14 h-14 bg-pastel-blue/50 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-pastel-sm">
                 <Ticket className="w-7 h-7 text-primary" />
               </div>
-              <p className="text-bappa-muted">
-                {tickets.length === 0 ? 'No players have joined yet.' : 'No players match this filter.'}
+              <p className="text-bappa-text font-bold">
+                {tickets.length === 0 ? 'No players have joined this round yet.' : 'No players match this filter.'}
               </p>
             </div>
           ) : (
@@ -545,65 +559,69 @@ export default function ControlRoom() {
                 return (
                   <div
                     key={t._id}
-                    className={`card cursor-pointer hover:shadow-card-hover transition-all duration-200 ${hasPendingClaim ? 'border-gold bg-gold-light/30' : ''}`}
+                    className={`bg-white rounded-3xl p-4 sm:p-5 border shadow-pastel-sm transition-all duration-200 cursor-pointer ${
+                      hasPendingClaim
+                        ? 'border-pastel-yellow bg-pastel-yellow/20 ring-2 ring-pastel-yellow'
+                        : 'border-pastel-border/80 hover:shadow-pastel hover:-translate-y-0.5'
+                    }`}
                     onClick={() => setSelectedTicket(selectedTicket?._id === t._id ? null : t)}
                   >
                     {/* Player header */}
                     <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2.5">
                         <div className="relative">
-                          <div className="w-8 h-8 rounded-full bg-primary-light text-primary font-bold text-xs flex items-center justify-center">
+                          <div className="w-9 h-9 rounded-xl bg-pastel-lavender/70 text-bappa-text font-black text-xs flex items-center justify-center">
                             {t.playerName?.charAt(0).toUpperCase()}
                           </div>
-                          <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${isOnline ? 'bg-success' : 'bg-bappa-muted'}`} />
+                          <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${isOnline ? 'bg-emerald-500' : 'bg-bappa-muted/50'}`} />
                         </div>
                         <div>
-                          <div className="font-semibold text-bappa-text text-sm">{t.playerName}</div>
-                          <div className="text-xs text-bappa-muted">@{t.username}</div>
+                          <div className="font-bold text-bappa-text text-sm">{t.playerName}</div>
+                          <div className="text-[11px] text-bappa-muted">@{t.username}</div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-xs font-bold text-bappa-text">{markedCount}/15</div>
-                        <div className="text-xs text-bappa-muted">{progressPct}%</div>
+                        <div className="text-xs font-black text-bappa-text">{markedCount}/15 marked</div>
+                        <div className="text-[11px] font-bold text-primary">{progressPct}%</div>
                       </div>
                     </div>
 
                     {/* Progress bar */}
-                    <div className="w-full h-1.5 bg-bappa-border rounded-full mb-3 overflow-hidden">
+                    <div className="w-full h-1.5 bg-pastel-surface rounded-full mb-3 overflow-hidden border border-pastel-border/60">
                       <div
-                        className="h-full bg-primary rounded-full transition-all duration-500"
+                        className="h-full bg-gradient-to-r from-pastel-blue to-pastel-mint rounded-full transition-all duration-500"
                         style={{ width: `${progressPct}%` }}
                       />
                     </div>
 
                     {/* Mini ticket */}
-                    <div className="ticket-grid mb-3">
+                    <div className="grid grid-cols-9 gap-1 mb-3 bg-pastel-surface/40 p-1.5 rounded-2xl border border-pastel-border/60">
                       {t.ticketGrid.map((row, ri) =>
                         row.map((cell, ci) => {
-                          if (cell === null) return <div key={`${ri}-${ci}`} className="aspect-square bg-surface-secondary rounded-lg" />;
+                          if (cell === null) return <div key={`${ri}-${ci}`} className="aspect-square bg-white/40 rounded-lg" />;
                           const isMarkedByPlayer = (t.markedNumbers || []).includes(cell);
                           const isCalled = calledSet.has(cell);
                           return (
                             <div
                               key={`${ri}-${ci}`}
-                              className={`aspect-square rounded-lg flex items-center justify-center text-xs font-bold transition-all relative ${
+                              className={`aspect-square rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold transition-all relative ${
                                 isMarkedByPlayer
-                                  ? 'bg-primary text-white shadow-saffron'
+                                  ? 'bg-pastel-blue text-bappa-text font-black shadow-xs'
                                   : isCalled
-                                  ? 'bg-primary-light text-primary border-2 border-primary'
-                                  : 'bg-surface border border-bappa-border text-bappa-text'
+                                  ? 'bg-pastel-mint/80 text-bappa-text border border-pastel-mint'
+                                  : 'bg-white border border-pastel-border text-bappa-text'
                               }`}
                               title={
                                 isMarkedByPlayer
                                   ? `${cell} - Marked by player`
                                   : isCalled
-                                  ? `${cell} - Called (waiting for player to mark)`
+                                  ? `${cell} - Called`
                                   : `${cell} - Not called`
                               }
                             >
                               {cell}
                               {isMarkedByPlayer && (
-                                <span className="absolute top-0 right-0.5 text-[8px] font-black leading-none text-white/90">✓</span>
+                                <span className="absolute top-0.5 right-0.5 text-[7px] font-black text-primary">✓</span>
                               )}
                             </div>
                           );
@@ -612,12 +630,16 @@ export default function ControlRoom() {
                     </div>
 
                     {/* Patterns */}
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap gap-1.5">
                       {completedPats.map((p: string) => (
-                        <span key={p} className="badge-success text-xs py-0.5">{PATTERN_LABELS[p] || p}</span>
+                        <span key={p} className="px-2 py-0.5 rounded-full bg-pastel-mint text-bappa-text font-bold text-[10px]">
+                          {PATTERN_LABELS[p] || p}
+                        </span>
                       ))}
                       {hasPendingClaim && (
-                        <span className="badge-gold text-xs py-0.5">Claim Pending</span>
+                        <span className="px-2 py-0.5 rounded-full bg-pastel-yellow text-amber-900 font-black text-[10px]">
+                          Claim Pending
+                        </span>
                       )}
                     </div>
                   </div>
@@ -628,35 +650,35 @@ export default function ControlRoom() {
 
           {/* Claim history */}
           {claims.length > 0 && (
-            <div className="card">
-              <h3 className="font-bold text-bappa-text mb-4">All Claims</h3>
+            <div className="bg-white rounded-3xl p-5 border border-pastel-border/80 shadow-pastel-sm">
+              <h3 className="font-bold text-bappa-text mb-3 text-sm">Round Claims Log</h3>
               <div className="space-y-2">
                 {claims.map((c) => (
-                  <div key={c._id} className={`flex items-center justify-between py-2 border-b border-bappa-border last:border-0`}>
+                  <div key={c._id} className="flex items-center justify-between py-2 border-b border-pastel-border/50 last:border-0">
                     <div className="flex items-center gap-3">
                       <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                        c.status === 'approved' ? 'bg-success' :
-                        c.status === 'rejected' ? 'bg-error' : 'bg-gold'
+                        c.status === 'approved' ? 'bg-emerald-500' :
+                        c.status === 'rejected' ? 'bg-rose-500' : 'bg-amber-400'
                       }`} />
                       <div>
-                        <span className="text-sm font-semibold text-bappa-text">{(c as any).playerName || 'Player'}</span>
+                        <span className="text-xs font-bold text-bappa-text">{(c as any).playerName || 'Player'}</span>
                         <span className="text-xs text-bappa-muted ml-2">{PATTERN_LABELS[c.pattern]}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`badge text-xs ${
-                        c.status === 'approved' ? 'badge-success' :
-                        c.status === 'rejected' ? 'badge-error' : 'badge-gold'
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                        c.status === 'approved' ? 'bg-pastel-mint text-emerald-900' :
+                        c.status === 'rejected' ? 'bg-pastel-pink text-rose-900' : 'bg-pastel-yellow text-amber-900'
                       }`}>{c.status}</span>
                       {c.status === 'pending' && (
-                        <>
-                          <button onClick={() => approveClaim(c._id)} className="btn-primary btn-sm py-1">
+                        <div className="flex gap-1">
+                          <button onClick={() => approveClaim(c._id)} className="btn-mint btn-sm py-1 px-2 text-xs">
                             <CheckCircle className="w-3 h-3" />
                           </button>
-                          <button onClick={() => rejectClaim(c._id)} className="btn-outline btn-sm py-1 text-error border-error">
+                          <button onClick={() => rejectClaim(c._id)} className="btn-pink btn-sm py-1 px-2 text-xs">
                             <XCircle className="w-3 h-3" />
                           </button>
-                        </>
+                        </div>
                       )}
                     </div>
                   </div>

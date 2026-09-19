@@ -321,49 +321,49 @@ export default function PlayerQuizPage() {
   if (quiz.status === 'ready') {
     return (
       <div className="max-w-2xl mx-auto space-y-6 py-6 sm:py-8 px-4 page-transition">
-        <div className="card shadow-card-lg border-2 border-primary/20 text-center p-6 sm:p-8 space-y-6 relative overflow-hidden">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-3xl bg-primary-light flex items-center justify-center shadow-inner border border-primary/20">
-            <Flame className="w-8 h-8 sm:w-10 sm:h-10 text-primary animate-pulse" />
+        <div className="card shadow-card-lg border border-bappa-border text-center p-6 sm:p-8 space-y-6 relative overflow-hidden rounded-4xl bg-surface">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-3xl bg-pastel-lavender flex items-center justify-center shadow-xs border border-pastel-lavender-dark">
+            <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
           </div>
 
           <div className="space-y-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-900 rounded-full text-xs font-black">
-              <Sparkles className="w-3.5 h-3.5 text-primary" /> Live Quiz Waiting Lobby
+            <span className="badge-lavender text-xs uppercase tracking-wider font-black">
+              Multiplayer Game Lobby
             </span>
             <h1 className="text-2xl sm:text-3xl font-black text-bappa-text">{quiz.title}</h1>
-            <p className="text-xs sm:text-sm text-bappa-muted">
-              The host will start this quiz shortly. Please get ready!
+            <p className="text-xs sm:text-sm text-bappa-secondary font-medium">
+              The host will start this live session shortly. Get ready!
             </p>
           </div>
 
-          {/* Room Code Banner */}
-          <div className="bg-sand-light/60 border border-bappa-border p-4 rounded-2xl inline-block max-w-xs mx-auto">
-            <div className="text-[11px] font-bold text-bappa-muted uppercase">Room Code</div>
-            <div className="text-3xl font-black tracking-widest text-primary font-mono mt-0.5">
+          {/* Prominent Pastel Room Code Card */}
+          <div className="bg-pastel-blue/35 border-2 border-pastel-blue p-5 rounded-3xl inline-block max-w-xs mx-auto shadow-pastel-blue">
+            <div className="text-[11px] font-black text-pastel-blue-dark tracking-wider uppercase">ROOM CODE</div>
+            <div className="text-4xl font-black tracking-widest text-[#204068] font-mono mt-1">
               {quiz.roomId}
             </div>
           </div>
 
           {/* Quiz Details */}
-          <div className="grid grid-cols-2 gap-3 text-left pt-2">
-            <div className="p-3 bg-white rounded-xl border border-bappa-border">
+          <div className="grid grid-cols-2 gap-3 text-left pt-1">
+            <div className="p-3.5 bg-surface-secondary/70 rounded-2xl border border-bappa-border">
               <div className="text-[11px] text-bappa-muted font-bold">Total Questions:</div>
-              <div className="text-sm font-black text-bappa-text">{quiz.totalQuestions} Questions</div>
+              <div className="text-base font-black text-bappa-text">{quiz.totalQuestions} Questions</div>
             </div>
-            <div className="p-3 bg-white rounded-xl border border-bappa-border">
+            <div className="p-3.5 bg-surface-secondary/70 rounded-2xl border border-bappa-border">
               <div className="text-[11px] text-bappa-muted font-bold">Difficulty:</div>
-              <div className="text-sm font-black text-bappa-text capitalize">{quiz.difficulty}</div>
+              <div className="text-base font-black text-bappa-text capitalize">{quiz.difficulty}</div>
             </div>
           </div>
 
-          <div className="text-xs text-bappa-muted/90 bg-amber-50/60 p-3.5 rounded-xl border border-amber-200 text-left space-y-1.5">
-            <div className="font-bold text-amber-900 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-primary" /> Rules & Information:
+          <div className="text-xs text-bappa-secondary bg-pastel-lavender/30 p-4 rounded-2xl border border-pastel-lavender text-left space-y-1.5">
+            <div className="font-bold text-primary-dark flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-primary" /> Quick Game Rules:
             </div>
-            <ul className="list-disc pl-4 space-y-1 text-bappa-text/80">
-              <li>Each question has a countdown timer (approx. 20-30 seconds).</li>
-              <li>Questions are derived 100% strictly from authentic Aarti verses.</li>
-              <li>Answering quickly and accurately earns speed bonus points.</li>
+            <ul className="list-disc pl-4 space-y-1 text-bappa-secondary">
+              <li>Each question has a countdown timer (20-30 seconds).</li>
+              <li>Options are color-coded in 4 friendly pastel cards.</li>
+              <li>Faster correct answers earn speed bonus points!</li>
             </ul>
           </div>
 
@@ -376,40 +376,40 @@ export default function PlayerQuizPage() {
     );
   }
 
-  // ─── 2. COMPLETED FINAL LEADERBOARD SCREEN (Status = 'completed') ────────────
+  // ─── 2. COMPLETED FINAL SCREEN (Status = 'completed') ────────────────────────
   if (quiz.status === 'completed') {
     return (
       <div className="max-w-xl mx-auto space-y-6 py-8 sm:py-10 px-4 page-transition text-center">
-        <div className="card shadow-card-lg border-2 border-primary/20 p-6 sm:p-8 space-y-6 relative overflow-hidden">
-          <div className="w-20 h-20 mx-auto rounded-3xl bg-gold-light/60 flex items-center justify-center border border-gold/30">
+        <div className="card shadow-card-lg border border-bappa-border p-6 sm:p-8 space-y-6 relative overflow-hidden rounded-4xl bg-surface">
+          <div className="w-20 h-20 mx-auto rounded-3xl bg-pastel-yellow flex items-center justify-center border border-pastel-yellow-dark shadow-pastel-yellow">
             <Trophy className="w-10 h-10 text-gold-dark animate-pulse" />
           </div>
           <div className="space-y-2">
-            <span className="text-xs font-black uppercase tracking-widest text-primary bg-primary-light px-3 py-1 rounded-full">
+            <span className="badge-yellow text-xs font-black uppercase tracking-wider">
               Quiz Completed
             </span>
-            <h1 className="text-2xl sm:text-3xl font-black text-bappa-text">Festive Blessings!</h1>
-            <p className="text-bappa-muted text-xs sm:text-sm">
-              You have successfully completed the Aarti quiz.
+            <h1 className="text-2xl sm:text-3xl font-black text-bappa-text">Festive Celebrations!</h1>
+            <p className="text-bappa-secondary text-xs sm:text-sm">
+              You have successfully finished the Ganapati Aarti quiz.
             </p>
           </div>
 
-          {/* Score Card */}
-          <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-6 space-y-2">
-            <div className="text-xs font-black text-amber-900 uppercase">Your Final Score</div>
-            <div className="text-4xl sm:text-5xl font-black text-primary font-mono drop-shadow-sm">
+          {/* Celebratory Score Card */}
+          <div className="bg-pastel-yellow/35 border-2 border-pastel-yellow-dark rounded-3xl p-6 sm:p-8 space-y-2 shadow-pastel-yellow">
+            <div className="text-xs font-black text-[#5A4108] uppercase tracking-wider">Your Final Score</div>
+            <div className="text-5xl sm:text-6xl font-black text-primary font-mono drop-shadow-xs">
               {totalEarnedPoints}
             </div>
-            <div className="text-xs font-bold text-bappa-muted">
+            <div className="text-xs font-bold text-bappa-secondary">
               {correctCount} of {quiz.totalQuestions} questions correct
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
             <Link href="/leaderboard" className="btn-primary py-3 px-6 text-sm flex items-center justify-center gap-2">
-              <Trophy className="w-4 h-4 text-gold" /> View Leaderboard
+              <Trophy className="w-4 h-4 text-pastel-yellow" /> View Leaderboard
             </Link>
-            <Link href="/dashboard" className="btn-secondary py-3 px-6 text-sm flex items-center justify-center gap-2">
+            <Link href="/dashboard" className="btn-outline py-3 px-6 text-sm flex items-center justify-center gap-2">
               <Home className="w-4 h-4" /> Main Dashboard
             </Link>
           </div>
@@ -425,18 +425,18 @@ export default function PlayerQuizPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-20 page-transition">
       {/* Top Header with Q Number, Timer, and Score */}
-      <div className="card shadow-card border border-primary/20 p-4 sm:p-5 flex items-center justify-between gap-4">
+      <div className="card shadow-card border border-bappa-border p-4 sm:p-5 flex items-center justify-between gap-4 rounded-3xl bg-surface">
         {/* Question Counter */}
         <div className="flex items-center gap-3">
-          <span className="w-10 h-10 rounded-2xl bg-primary text-white font-black flex items-center justify-center text-lg shadow-md">
+          <span className="w-10 h-10 rounded-2xl bg-pastel-lavender text-primary font-black flex items-center justify-center text-base shadow-xs border border-pastel-lavender-dark">
             {currentIndex + 1}
           </span>
           <div>
-            <div className="text-[11px] font-black text-bappa-muted uppercase">
+            <div className="text-[11px] font-black text-bappa-muted uppercase tracking-wider">
               Question {currentIndex + 1} of {quiz.totalQuestions}
             </div>
             <div className="text-xs font-bold text-bappa-text truncate max-w-[150px] sm:max-w-xs">
-              Ganapati Quiz
+              Ganapati Aarti Quiz
             </div>
           </div>
         </div>
@@ -444,28 +444,28 @@ export default function PlayerQuizPage() {
         {/* Live Timer Indicator */}
         <div className="flex items-center gap-3">
           <div
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-black text-xs sm:text-sm border transition-all ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-black text-xs sm:text-sm border transition-all ${
               timeLeft <= 5 && timerActive
-                ? 'bg-error-light text-error border-error/30 animate-pulse'
-                : 'bg-primary-light text-primary border-primary/20'
+                ? 'bg-pastel-pink text-error border-pastel-pink-dark animate-pulse'
+                : 'bg-pastel-blue/40 text-[#204068] border-pastel-blue'
             }`}
           >
             <Timer className="w-4 h-4" />
             <span>{timeLeft}s</span>
           </div>
 
-          <div className="hidden sm:flex items-center gap-1 px-3 py-1.5 rounded-full bg-gold-light text-gold-dark font-black text-xs border border-gold/30">
-            <Trophy className="w-3.5 h-3.5" />
+          <div className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-pastel-yellow/40 text-bappa-text font-black text-xs border border-pastel-yellow">
+            <Trophy className="w-3.5 h-3.5 text-gold-dark" />
             <span>{totalEarnedPoints} pts</span>
           </div>
         </div>
       </div>
 
       {/* Dynamic Animated Timer Progress Bar */}
-      <div className="w-full bg-sand rounded-full h-2.5 overflow-hidden shadow-inner">
+      <div className="w-full bg-surface-secondary border border-bappa-border rounded-full h-2.5 overflow-hidden shadow-xs">
         <motion.div
           className={`h-full transition-all duration-300 ${
-            timeLeft <= 5 ? 'bg-error' : timeLeft <= 10 ? 'bg-amber-500' : 'bg-primary'
+            timeLeft <= 5 ? 'bg-pastel-pink-dark' : timeLeft <= 10 ? 'bg-pastel-yellow-dark' : 'bg-pastel-mint-dark'
           }`}
           style={{ width: `${timerPercentage}%` }}
         />
@@ -473,11 +473,11 @@ export default function PlayerQuizPage() {
 
       {/* Main Question Card */}
       {currentQuestion && (
-        <div className="card shadow-card-lg border-2 border-primary/20 p-6 sm:p-8 space-y-6 relative">
+        <div className="card shadow-card-lg border border-bappa-border p-6 sm:p-8 space-y-6 relative rounded-4xl bg-surface">
           {/* Question Type Tag */}
           <div className="flex items-center justify-between">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-light text-primary text-xs font-black">
-              <Sparkles className="w-3.5 h-3.5" />
+            <span className="badge-lavender text-xs font-black uppercase tracking-wider">
+              <Sparkles className="w-3.5 h-3.5 text-primary" />
               {QUESTION_TYPE_LABELS[currentQuestion.type as keyof typeof QUESTION_TYPE_LABELS]?.label ||
                 currentQuestion.type}
             </span>
@@ -565,15 +565,15 @@ export default function PlayerQuizPage() {
 
           {/* Active Submission Confirmation Banner */}
           {hasSubmitted && !isRevealed && (
-            <div className="p-4 rounded-2xl bg-amber-50/90 border border-amber-300 text-amber-950 flex flex-col sm:flex-row items-center justify-between gap-3 animate-fade-in">
+            <div className="p-4 rounded-3xl bg-pastel-mint/35 border border-pastel-mint-dark text-[#1C4D32] flex flex-col sm:flex-row items-center justify-between gap-3 animate-fade-in shadow-xs">
               <div className="flex items-center gap-3">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                <CheckCircle2 className="w-5 h-5 text-success flex-shrink-0" />
                 <div>
-                  <div className="text-xs font-black uppercase tracking-wider text-emerald-800">
-                    {submitConfirmed ? 'Answer Submitted' : submitting ? 'Submitting Answer...' : 'Answer Recorded'}
+                  <div className="text-xs font-black uppercase tracking-wider text-success-dark">
+                    {submitConfirmed ? 'Answer Locked In' : submitting ? 'Submitting Answer...' : 'Answer Recorded'}
                   </div>
-                  <div className="text-xs text-bappa-muted">
-                    {submitError || 'Answer locked in! Waiting for round to end & results to reveal...'}
+                  <div className="text-xs text-bappa-secondary">
+                    {submitError || 'Waiting for round to end and results to reveal...'}
                   </div>
                 </div>
               </div>
@@ -581,7 +581,7 @@ export default function PlayerQuizPage() {
                 <button
                   type="button"
                   onClick={() => handleAnswerSubmit(submittedAnswer)}
-                  className="px-3.5 py-1.5 bg-error text-white text-xs font-black rounded-xl hover:opacity-90 transition-all flex items-center gap-1.5 shadow-sm"
+                  className="px-3.5 py-1.5 bg-pastel-pink text-error border border-pastel-pink-dark text-xs font-black rounded-xl hover:opacity-95 transition-all flex items-center gap-1.5 shadow-xs"
                 >
                   <RefreshCw className="w-3.5 h-3.5" /> Retry
                 </button>
@@ -598,7 +598,7 @@ export default function PlayerQuizPage() {
           <AnimatePresence>
             {isRevealed && (
               <motion.div
-                initial={{ opacity: 0, y: 15 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
                 className="space-y-4 pt-4 border-t border-bappa-border"
@@ -606,22 +606,22 @@ export default function PlayerQuizPage() {
                 {/* Result Feedback Banner */}
                 {answerResult && (
                   <div
-                    className={`p-4 rounded-2xl border flex items-center gap-3 ${
+                    className={`p-4 sm:p-5 rounded-3xl border flex items-center gap-3.5 shadow-xs ${
                       answerResult.correct
-                        ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
-                        : 'bg-amber-50 border-amber-300 text-amber-900'
+                        ? 'bg-pastel-mint/35 border-pastel-mint-dark text-[#1C4D32]'
+                        : 'bg-pastel-pink/35 border-pastel-pink-dark text-[#782828]'
                     }`}
                   >
                     {answerResult.correct ? (
-                      <CheckCircle2 className="w-6 h-6 text-emerald-600 flex-shrink-0" />
+                      <CheckCircle2 className="w-6 h-6 text-success flex-shrink-0" />
                     ) : (
-                      <XCircle className="w-6 h-6 text-amber-600 flex-shrink-0" />
+                      <XCircle className="w-6 h-6 text-error flex-shrink-0" />
                     )}
                     <div>
-                      <div className="font-black text-sm">
+                      <div className="font-black text-sm sm:text-base">
                         {answerResult.correct ? 'Brilliant! Correct Answer!' : 'Time Expired or Incorrect Answer'}
                       </div>
-                      <div className="text-xs opacity-90">
+                      <div className="text-xs opacity-90 font-medium">
                         {answerResult.correct
                           ? `You earned +${answerResult.points} points!`
                           : 'Check the authentic verse reference below.'}
@@ -631,25 +631,25 @@ export default function PlayerQuizPage() {
                 )}
 
                 {/* Verified Source Aarti Reference */}
-                <div className="bg-amber-50/80 border border-amber-300/80 rounded-2xl p-4 sm:p-5 space-y-2">
-                  <div className="flex items-center gap-2 text-amber-900 font-black text-xs uppercase tracking-wider">
-                    <ShieldCheck className="w-4 h-4 text-amber-600" />
+                <div className="bg-pastel-lavender/30 border border-pastel-lavender rounded-3xl p-4 sm:p-5 space-y-2">
+                  <div className="flex items-center gap-2 text-primary font-black text-xs uppercase tracking-wider">
+                    <ShieldCheck className="w-4 h-4 text-primary" />
                     <span>Authentic Verse Reference</span>
                   </div>
 
-                  <div className="text-sm font-bold text-amber-950">
+                  <div className="text-sm font-bold text-bappa-text">
                     {answerResult?.sourceAarti || currentQuestion.sourceAarti}
                   </div>
 
                   {(answerResult?.sourceLine || currentQuestion.sourceLine) && (
-                    <div className="p-3 bg-white/90 border border-amber-200 rounded-xl text-maroon font-black text-sm sm:text-base">
+                    <div className="p-3.5 bg-surface border border-pastel-lavender-dark rounded-2xl text-primary font-black text-sm sm:text-base">
                       "{answerResult?.sourceLine || currentQuestion.sourceLine}"
                     </div>
                   )}
 
                   {currentQuestion.explanation && (
-                    <div className="text-xs text-amber-900/90 pt-1">
-                      <span className="font-bold">Meaning / Explanation: </span>
+                    <div className="text-xs text-bappa-secondary pt-1 leading-relaxed">
+                      <span className="font-bold text-bappa-text">Meaning: </span>
                       {currentQuestion.explanation}
                     </div>
                   )}

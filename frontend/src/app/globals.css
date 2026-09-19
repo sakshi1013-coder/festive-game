@@ -1,7 +1,30 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap');
 
 @import "tailwindcss";
 @config "../../tailwind.config.ts";
+
+:root {
+  --background: #FFF9F2;
+  --surface: #FFFFFF;
+  --surface-soft: #FFFCF9;
+  --surface-secondary: #FBF6F0;
+  
+  --pastel-pink: #F6C6C6;
+  --pastel-blue: #C9DDF5;
+  --pastel-mint: #CFE8D5;
+  --pastel-lavender: #E8D5F2;
+  --pastel-yellow: #F9E7A8;
+  --pastel-peach: #F8DCC8;
+
+  --text-primary: #3D3542;
+  --text-secondary: #756C78;
+  --text-muted: #9B929B;
+  --border: #E9DFE2;
+
+  --primary: #7B73DC;
+  --primary-light: #EAE8FD;
+  --primary-dark: #5A52BD;
+}
 
 @layer base {
   * {
@@ -11,206 +34,253 @@
   }
 
   html {
-    font-family: 'Inter', system-ui, sans-serif;
-    color: #292524;
-    background-color: #FFFDF8;
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    color: #3D3542;
+    background-color: #FFF9F2;
   }
 
   body {
-    background-color: #FFFDF8;
+    background-color: #FFF9F2;
+    color: #3D3542;
     min-height: 100vh;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Inter', system-ui, sans-serif;
-    color: #292524;
-    line-height: 1.2;
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    color: #3D3542;
+    line-height: 1.25;
+    font-weight: 800;
   }
 }
 
 @layer components {
-  /* ─── Buttons ─────────────────────────────────────── */
+  /* ─── Modern Pastel Game Buttons ───────────────────────── */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 px-6 py-3 
-           bg-primary text-white font-semibold rounded-xl
+           bg-primary text-white font-bold rounded-2xl
            hover:bg-primary-dark active:scale-95
-           transition-all duration-200 shadow-saffron
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50
+           transition-all duration-200 shadow-pastel
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40
            disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
-  }
-
-  .btn-maroon {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 
-           bg-maroon text-white font-semibold rounded-xl
-           hover:bg-maroon-dark active:scale-95
-           transition-all duration-200 shadow-sm
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-maroon/30;
   }
 
   .btn-outline {
     @apply inline-flex items-center justify-center gap-2 px-6 py-3 
-           border-2 border-bappa-border text-bappa-text font-semibold rounded-xl
-           hover:border-primary hover:text-primary hover:bg-primary-light active:scale-95
-           transition-all duration-200
+           border border-bappa-border bg-surface text-bappa-text font-bold rounded-2xl
+           hover:bg-surface-secondary hover:border-bappa-secondary/40 active:scale-95
+           transition-all duration-200 shadow-sm
            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30;
   }
 
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2 
-           text-bappa-muted font-medium rounded-lg
+           text-bappa-secondary font-semibold rounded-xl
            hover:bg-surface-secondary hover:text-bappa-text active:scale-95
            transition-all duration-200;
   }
 
+  .btn-mint {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 
+           bg-pastel-mint text-bappa-text font-bold rounded-2xl
+           hover:bg-pastel-mint-dark active:scale-95
+           transition-all duration-200 shadow-pastel-mint;
+  }
+
+  .btn-blue {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 
+           bg-pastel-blue text-bappa-text font-bold rounded-2xl
+           hover:bg-pastel-blue-dark active:scale-95
+           transition-all duration-200 shadow-pastel-blue;
+  }
+
+  .btn-pink {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 
+           bg-pastel-pink text-bappa-text font-bold rounded-2xl
+           hover:bg-pastel-pink-dark active:scale-95
+           transition-all duration-200 shadow-pastel-pink;
+  }
+
+  .btn-yellow {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 
+           bg-pastel-yellow text-bappa-text font-bold rounded-2xl
+           hover:bg-pastel-yellow-dark active:scale-95
+           transition-all duration-200 shadow-pastel-yellow;
+  }
+
+  .btn-maroon {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 
+           bg-pastel-pink text-bappa-text font-bold rounded-2xl
+           hover:bg-pastel-pink-dark active:scale-95
+           transition-all duration-200 shadow-sm;
+  }
+
   .btn-gold {
     @apply inline-flex items-center justify-center gap-2 px-6 py-3 
-           bg-gold text-white font-semibold rounded-xl
-           hover:bg-gold-dark active:scale-95
-           transition-all duration-200 shadow-gold;
+           bg-pastel-yellow text-bappa-text font-bold rounded-2xl
+           hover:bg-pastel-yellow-dark active:scale-95
+           transition-all duration-200 shadow-pastel-yellow;
   }
 
   .btn-sm {
-    @apply px-4 py-2 text-sm;
+    @apply px-4 py-2 text-sm rounded-xl;
   }
 
   .btn-lg {
-    @apply px-8 py-4 text-lg;
+    @apply px-8 py-4 text-lg rounded-3xl;
   }
 
-  /* ─── Cards ───────────────────────────────────────── */
+  /* ─── Rounded Pastel Game Cards ────────────────────────── */
   .card {
-    @apply bg-surface rounded-2xl shadow-card border border-bappa-border p-6;
+    @apply bg-surface rounded-3xl shadow-card border border-bappa-border p-6;
   }
 
   .card-hover {
-    @apply bg-surface rounded-2xl shadow-card border border-bappa-border p-6
-           hover:shadow-card-hover hover:-translate-y-0.5 
+    @apply bg-surface rounded-3xl shadow-card border border-bappa-border p-6
+           hover:shadow-card-hover hover:-translate-y-1 
            transition-all duration-200 cursor-pointer;
   }
 
-  .card-festive {
-    @apply bg-surface rounded-2xl shadow-card border border-bappa-border p-6
-           bg-festival-pattern;
+  .card-soft {
+    @apply bg-surface-soft rounded-3xl border border-bappa-border p-6;
   }
 
-  /* ─── Form Elements ───────────────────────────────── */
+  /* ─── Form Inputs ──────────────────────────────────────── */
   .input-field {
-    @apply w-full px-4 py-3 bg-surface border border-bappa-border rounded-xl
-           text-bappa-text placeholder:text-bappa-muted/60
-           focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
+    @apply w-full px-4 py-3 bg-surface border border-bappa-border rounded-2xl
+           text-bappa-text placeholder:text-bappa-muted/70
+           focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary
            transition-all duration-200;
   }
 
   .input-label {
-    @apply block text-sm font-semibold text-bappa-text mb-1.5;
+    @apply block text-sm font-bold text-bappa-text mb-1.5;
   }
 
-  /* ─── Badges ──────────────────────────────────────── */
-  .badge,
-  .badge-saffron,
-  .badge-maroon,
-  .badge-gold,
-  .badge-success,
-  .badge-error,
-  .badge-muted {
-    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold;
+  /* ─── Badges ───────────────────────────────────────────── */
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold;
+  }
+
+  .badge-pink {
+    @apply bg-pastel-pink-light text-bappa-text border border-pastel-pink/50;
+  }
+
+  .badge-blue {
+    @apply bg-pastel-blue-light text-bappa-text border border-pastel-blue/50;
+  }
+
+  .badge-mint {
+    @apply bg-pastel-mint-light text-success-dark border border-pastel-mint/50;
+  }
+
+  .badge-lavender {
+    @apply bg-pastel-lavender-light text-primary-dark border border-pastel-lavender/50;
+  }
+
+  .badge-yellow {
+    @apply bg-pastel-yellow-light text-bappa-text border border-pastel-yellow/50;
+  }
+
+  .badge-peach {
+    @apply bg-pastel-peach-light text-bappa-text border border-pastel-peach/50;
   }
 
   .badge-saffron {
-    @apply bg-primary-light text-primary;
+    @apply bg-pastel-lavender-light text-primary font-extrabold border border-pastel-lavender/60;
   }
 
   .badge-maroon {
-    @apply bg-maroon-light text-maroon;
+    @apply bg-pastel-pink-light text-maroon font-bold border border-pastel-pink/50;
   }
 
   .badge-gold {
-    @apply bg-gold-light text-gold-dark;
+    @apply bg-pastel-yellow-light text-bappa-text font-bold border border-pastel-yellow/60;
   }
 
   .badge-success {
-    @apply bg-success-light text-success;
+    @apply bg-pastel-mint-light text-success-dark font-bold border border-pastel-mint/60;
   }
 
   .badge-error {
-    @apply bg-error-light text-error;
+    @apply bg-pastel-pink-light text-error font-bold border border-pastel-pink/60;
   }
 
   .badge-muted {
-    @apply bg-bappa-border text-bappa-muted;
+    @apply bg-surface-secondary text-bappa-muted border border-bappa-border;
   }
 
-  /* ─── Housie Ticket ───────────────────────────────── */
+  /* ─── Pastel Multicolor Housie Ticket ──────────────────── */
   .ticket-cell,
   .ticket-cell-number,
   .ticket-cell-blank,
   .ticket-cell-marked,
   .ticket-cell-claimed {
     @apply w-full aspect-square flex items-center justify-center
-           text-sm sm:text-base font-bold rounded-xl border border-bappa-border
+           text-sm sm:text-base md:text-lg font-black rounded-xl border
            transition-all duration-200 select-none;
   }
 
-  .ticket-cell-number {
-    @apply bg-surface text-bappa-text hover:border-primary/50 hover:bg-primary-light/30 active:scale-95 cursor-pointer shadow-sm;
+  .ticket-cell-blank {
+    @apply bg-[#F5F1F3] border-transparent cursor-default;
   }
 
-  .ticket-cell-blank {
-    @apply bg-surface-secondary border-transparent cursor-default;
+  .ticket-cell-number {
+    @apply bg-surface border-bappa-border text-bappa-text 
+           hover:border-primary/40 hover:bg-surface-soft active:scale-95 cursor-pointer shadow-xs;
   }
 
   .ticket-cell-marked {
-    @apply bg-primary text-white border-primary shadow-saffron scale-100 ring-2 ring-primary/40 cursor-pointer active:scale-95;
+    @apply bg-pastel-blue text-[#204068] border-pastel-blue-dark shadow-pastel-blue scale-100 ring-2 ring-pastel-blue/60 cursor-pointer active:scale-95;
   }
 
   .ticket-cell-claimed {
-    @apply bg-gold text-white border-gold shadow-gold ring-2 ring-gold/40;
+    @apply bg-pastel-yellow text-[#5A4108] border-pastel-yellow-dark shadow-pastel-yellow ring-2 ring-pastel-yellow/70;
   }
 
-  /* ─── Number Board ────────────────────────────────── */
+  /* ─── Number Board ─────────────────────────────────────── */
   .number-ball,
   .number-ball-uncalled,
   .number-ball-called,
   .number-ball-current {
-    @apply aspect-square w-full max-w-[42px] max-h-[42px] rounded-full flex items-center justify-center
-           text-xs sm:text-sm font-bold transition-all duration-300 mx-auto select-none cursor-pointer;
+    @apply aspect-square w-full max-w-[42px] max-h-[42px] rounded-2xl flex items-center justify-center
+           text-xs sm:text-sm font-extrabold transition-all duration-300 mx-auto select-none cursor-pointer;
   }
 
   .number-ball-uncalled {
-    @apply bg-surface border border-bappa-border text-bappa-muted/75 hover:border-primary/50 hover:text-bappa-text hover:scale-105;
+    @apply bg-surface border border-bappa-border text-bappa-muted hover:border-primary/40 hover:text-bappa-text hover:scale-105;
   }
 
   .number-ball-called {
-    @apply bg-primary text-white shadow-saffron font-extrabold ring-1 ring-primary/40 hover:brightness-105;
+    @apply bg-pastel-mint text-[#1C4D32] border border-pastel-mint-dark font-black shadow-xs ring-1 ring-pastel-mint/50 hover:brightness-95;
   }
 
   .number-ball-current {
-    @apply bg-maroon text-white shadow-lg font-black ring-4 ring-maroon/25 animate-pulse-gold;
+    @apply bg-pastel-lavender text-primary-dark border-2 border-primary shadow-pastel font-black ring-4 ring-pastel-lavender/60 animate-pulse-soft;
   }
 
-  /* ─── Stat Cards ──────────────────────────────────── */
+  /* ─── Stat Cards ───────────────────────────────────────── */
   .stat-card {
-    @apply bg-surface rounded-2xl shadow-card border border-bappa-border p-6 flex flex-col gap-1;
+    @apply bg-surface rounded-3xl shadow-card border border-bappa-border p-5 flex flex-col gap-1;
   }
 
   .stat-value {
-    @apply text-3xl font-bold text-bappa-text;
+    @apply text-2xl sm:text-3xl font-black text-bappa-text;
   }
 
   .stat-label {
-    @apply text-sm text-bappa-muted font-medium;
+    @apply text-xs sm:text-sm text-bappa-secondary font-semibold;
   }
 
-  /* ─── Section headings ────────────────────────────── */
+  /* ─── Section Headings ─────────────────────────────────── */
   .section-title {
-    @apply text-2xl font-bold text-bappa-text;
+    @apply text-xl sm:text-2xl font-black text-bappa-text;
   }
 
   .section-subtitle {
-    @apply text-bappa-muted mt-1;
+    @apply text-bappa-secondary text-sm mt-1;
   }
 
-  /* ─── Festive Divider ─────────────────────────────── */
+  /* ─── Dividers ─────────────────────────────────────────── */
   .divider-festive {
     @apply flex items-center gap-3 my-6;
   }
@@ -220,68 +290,36 @@
     content: '';
     @apply flex-1 h-px bg-bappa-border;
   }
-
-  /* ─── Scrollbar ───────────────────────────────────── */
-  .scrollbar-thin {
-    scrollbar-width: thin;
-    scrollbar-color: #E7E0D5 transparent;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: #E7E0D5;
-    border-radius: 9999px;
-  }
 }
 
 @layer utilities {
-  .text-gradient-saffron {
-    background: linear-gradient(135deg, #D97706, #B45309);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .text-gradient-gold {
-    background: linear-gradient(135deg, #C69214, #D97706);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .text-gradient-maroon {
-    background: linear-gradient(135deg, #7F1D1D, #991B1B);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
   .bg-festive-dots {
-    background-image: radial-gradient(circle, rgba(217, 119, 6, 0.12) 1px, transparent 1px);
+    background-image: radial-gradient(circle, rgba(123, 115, 220, 0.08) 1.5px, transparent 1.5px);
     background-size: 24px 24px;
   }
 
   .bg-festive-grid {
     background-image: 
-      linear-gradient(rgba(231, 224, 213, 0.4) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(231, 224, 213, 0.4) 1px, transparent 1px);
+      linear-gradient(rgba(233, 223, 226, 0.5) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(233, 223, 226, 0.5) 1px, transparent 1px);
     background-size: 32px 32px;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 
-/* ─── Transitions ─────────────────────────────────────── */
+/* ─── Transitions ─────────────────────────────────────────── */
 .page-transition {
   animation: fadeIn 0.3s ease-out;
 }
 
-/* ─── Ticket Grid ─────────────────────────────────────── */
+/* ─── Ticket Grid ─────────────────────────────────────────── */
 .ticket-grid {
   display: grid;
   grid-template-columns: repeat(9, minmax(0, 1fr));
@@ -294,26 +332,17 @@
   }
 }
 
-/* ─── Number Board Grid ───────────────────────────────── */
+/* ─── Number Board Grid ───────────────────────────────────── */
 .number-board {
   display: grid;
   grid-template-columns: repeat(9, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
   padding: 8px 4px;
 }
 
 @media (max-width: 768px) {
   .number-board {
-    gap: 6px;
+    gap: 5px;
     padding: 4px 0;
   }
-}
-
-/* ─── Toast ───────────────────────────────────────────── */
-.toast-success {
-  @apply bg-success-light border border-success/20 text-success rounded-xl shadow-card;
-}
-
-.toast-error {
-  @apply bg-error-light border border-error/20 text-error rounded-xl shadow-card;
 }
