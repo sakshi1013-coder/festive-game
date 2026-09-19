@@ -14,10 +14,8 @@ const NAV_ITEMS = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { href: '/quiz', label: 'Live Quiz', icon: Flame },
   { href: '/dashboard/housie', label: 'Join Housie', icon: Grid3X3 },
-  { href: '/dashboard/wins', label: 'My Wins', icon: Trophy },
-  { href: '/dashboard/history', label: 'Game History', icon: History },
   { href: '/leaderboard', label: 'Leaderboard', icon: Award },
-  { href: '/dashboard/profile', label: 'Profile', icon: User },
+  { href: '/dashboard/profile', label: 'My Profile & Wins', icon: User },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
