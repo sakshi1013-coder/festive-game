@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Send, Sparkles } from 'lucide-react';
 import { DynamicQuizQuestion } from '@/types/index';
@@ -24,6 +24,10 @@ export default function FillBlankPlayer({
 }: Props) {
   const [picked, setPicked] = useState<string | null>(selectedAnswer || null);
 
+  useEffect(() => {
+    setPicked(selectedAnswer || null);
+  }, [selectedAnswer, question?._id]);
+
   const handleSelect = (option: string) => {
     if (disabled || revealed) return;
     setPicked(option);
@@ -33,10 +37,10 @@ export default function FillBlankPlayer({
   const options = question.options || [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 sm:space-y-4">
       {/* Question Sentence with highlighted blank */}
-      <div className="p-6 bg-surface-secondary rounded-2xl border border-bappa-border shadow-sm text-center">
-        <div className="text-xl sm:text-2xl font-black text-bappa-text leading-relaxed whitespace-pre-line">
+      <div className="p-4 sm:p-5 bg-pastel-surface/80 rounded-2xl border border-pastel-border shadow-2xs text-center">
+        <div className="text-lg sm:text-xl font-black text-bappa-text leading-relaxed whitespace-pre-line">
           {question.question.replace('______', picked ? `【 ${picked} 】` : '【 ______ 】')}
         </div>
       </div>

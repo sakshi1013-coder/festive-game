@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link2, Check, Send } from 'lucide-react';
 import { DynamicQuizQuestion } from '@/types/index';
@@ -21,11 +21,19 @@ export default function MatchLinesPlayer({
   const originalPairs = question.pairs || [];
   const leftItems = originalPairs.map((p) => p.left);
   // Shuffled right items
-  const [rightItems] = useState(() => [...originalPairs.map((p) => p.right)].sort(() => 0.5 - Math.random()));
+  const [rightItems, setRightItems] = useState(() => [...originalPairs.map((p) => p.right)].sort(() => 0.5 - Math.random()));
 
   const [selectedLeft, setSelectedLeft] = useState<string | null>(null);
   const [matches, setMatches] = useState<Record<string, string>>({}); // left -> right
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    const pairs = question.pairs || [];
+    setRightItems([...pairs.map((p) => p.right)].sort(() => 0.5 - Math.random()));
+    setSelectedLeft(null);
+    setMatches({});
+    setSubmitted(false);
+  }, [question?._id]);
 
   const handleLeftClick = (left: string) => {
     if (disabled || revealed) return;

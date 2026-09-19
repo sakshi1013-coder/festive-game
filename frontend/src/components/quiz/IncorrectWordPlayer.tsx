@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, AlertTriangle, Send, Search } from 'lucide-react';
 import { DynamicQuizQuestion } from '@/types/index';
@@ -28,6 +28,10 @@ export default function IncorrectWordPlayer({
 
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
 
+  useEffect(() => {
+    setSelectedWord(null);
+  }, [question?._id]);
+
   const handleWordClick = (w: string) => {
     if (disabled || revealed) return;
     setSelectedWord(w);
@@ -35,11 +39,11 @@ export default function IncorrectWordPlayer({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="p-4 bg-surface-secondary rounded-xl border border-bappa-border text-center">
-        <p className="text-xs text-bappa-muted font-medium flex items-center justify-center gap-1.5">
+    <div className="space-y-3 sm:space-y-4">
+      <div className="p-2.5 sm:p-3 bg-pastel-blue/30 rounded-2xl border border-pastel-blue/60 text-center">
+        <p className="text-xs text-bappa-muted font-bold flex items-center justify-center gap-1.5">
           <Search className="w-3.5 h-3.5 text-primary flex-shrink-0" />
-          <span><strong>Instruction:</strong> Spot the subtly altered incorrect word in the verse below and click it.</span>
+          <span>Spot the subtly altered incorrect word in the verse and click it.</span>
         </p>
       </div>
 

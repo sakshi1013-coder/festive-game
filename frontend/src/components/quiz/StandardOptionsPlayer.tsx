@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2 } from 'lucide-react';
 import { DynamicQuizQuestion } from '@/types/index';
@@ -50,6 +50,10 @@ export default function StandardOptionsPlayer({
   correctAnswer,
 }: Props) {
   const [picked, setPicked] = useState<string | null>(selectedAnswer || null);
+
+  useEffect(() => {
+    setPicked(selectedAnswer || null);
+  }, [selectedAnswer, question?._id]);
 
   const handleSelect = (option: string) => {
     if (disabled || revealed) return;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowUp, ArrowDown, GripVertical, Check, Send, Lightbulb, CheckCircle2 } from 'lucide-react';
 import { DynamicQuizQuestion } from '@/types/index';
@@ -24,6 +24,12 @@ export default function ArrangeAartiPlayer({
   const [items, setItems] = useState<string[]>(initialItems);
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    const initial = question.items && question.items.length > 0 ? question.items : [];
+    setItems(initial);
+    setSubmitted(false);
+  }, [question?._id]);
 
   const moveItem = (fromIdx: number, toIdx: number) => {
     if (disabled || revealed || toIdx < 0 || toIdx >= items.length) return;
@@ -50,14 +56,14 @@ export default function ArrangeAartiPlayer({
   };
 
   const handleConfirmSubmit = () => {
-    if (disabled || revealed || submitted) return;
+    if (disabled || revealed) return;
     setSubmitted(true);
     onSubmit(items);
   };
 
   return (
-    <div className="space-y-6">
-      <div className="text-center p-3 bg-surface-secondary rounded-xl border border-bappa-border">
+    <div className="space-y-3 sm:space-y-4">
+      <div className="text-center p-2.5 sm:p-3 bg-pastel-blue/30 rounded-2xl border border-pastel-blue/60">
         <p className="text-xs text-bappa-muted font-medium flex items-center justify-center gap-1.5">
           <Lightbulb className="w-3.5 h-3.5 text-primary flex-shrink-0" />
           <span><strong>Instruction:</strong> Arrange the words in the authentic order by dragging or using the arrow buttons.</span>

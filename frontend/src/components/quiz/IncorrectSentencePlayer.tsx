@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
 import { DynamicQuizQuestion } from '@/types/index';
@@ -24,6 +24,10 @@ export default function IncorrectSentencePlayer({
 }: Props) {
   const [picked, setPicked] = useState<string | null>(selectedSentence || null);
 
+  useEffect(() => {
+    setPicked(selectedSentence || null);
+  }, [selectedSentence, question?._id]);
+
   const handleSelect = (sentence: string) => {
     if (disabled || revealed) return;
     setPicked(sentence);
@@ -33,15 +37,15 @@ export default function IncorrectSentencePlayer({
   const options = question.options || [];
 
   return (
-    <div className="space-y-4">
-      <div className="p-3.5 bg-surface-secondary rounded-xl border border-bappa-border text-center">
-        <p className="text-xs text-bappa-muted font-medium flex items-center justify-center gap-1.5">
+    <div className="space-y-3 sm:space-y-4">
+      <div className="p-2.5 sm:p-3 bg-pastel-blue/30 rounded-2xl border border-pastel-blue/60 text-center">
+        <p className="text-xs text-bappa-muted font-bold flex items-center justify-center gap-1.5">
           <AlertTriangle className="w-3.5 h-3.5 text-primary flex-shrink-0" />
-          <span><strong>Instruction:</strong> 3 lines below are authentic verses and 1 line has an alteration. Select the <strong>incorrect line</strong>.</span>
+          <span>3 lines below are authentic verses and 1 line has an alteration. Select the <strong>incorrect line</strong>.</span>
         </p>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {options.map((option, i) => {
           let cardStyle = 'border-2 border-bappa-border bg-surface hover:border-primary hover:bg-primary-light';
 

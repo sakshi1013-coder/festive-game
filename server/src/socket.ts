@@ -19,6 +19,8 @@ const onlinePlayersPerQuiz = new Map<string, Set<string>>();
 const quizTimers = new Map<string, NodeJS.Timeout>();
 // Track real-time answers per quiz question: `${quizId}:${questionId}` -> { answered: Set<string>; correct: Set<string>; incorrect: Set<string> }
 const quizQuestionStats = new Map<string, { answered: Set<string>; correct: Set<string>; incorrect: Set<string> }>();
+// Track individual player submission per question to allow changing answers within timer: `${userId}:${quizId}:${questionId}` -> { isCorrect: boolean, points: number, answer: any }
+const playerQuestionSubmissions = new Map<string, { isCorrect: boolean; points: number; answer: any }>();
 
 export function initSocket(io: Server): void {
   // ─── Authentication Middleware ─────────────────────────────────────────────
@@ -990,13 +992,21 @@ export function initSocket(io: Server): void {
           const maxPoints = (question.points && question.points >= 100) ? question.points : ((question.points || 10) * 100);
           speedMultiplier = Math.max(0.5, Math.round((1 - ((validTime / timeLimit) / 2)) * 100) / 100);
           points = Math.max(Math.round(maxPoints * speedMultiplier), 50);
-
-          await User.findByIdAndUpdate(authedSocket.user.userId, {
-            $inc: { totalPoints: points },
-          });
         }
 
         const quizIdStr = quiz ? quiz._id.toString() : (quizId || '');
+        const subKey = `${authedSocket.user.userId}:${quizIdStr}:${questionId}`;
+        const prevSub = playerQuestionSubmissions.get(subKey);
+
+        // Calculate delta to adjust total points if player changed their answer
+        const pointDelta = points - (prevSub ? prevSub.points : 0);
+        if (pointDelta !== 0) {
+          await User.findByIdAndUpdate(authedSocket.user.userId, {
+            $inc: { totalPoints: pointDelta },
+          });
+        }
+        playerQuestionSubmissions.set(subKey, { isCorrect, points, answer });
+
         const qStatKey = `${quizIdStr}:${questionId}`;
         let qStats = quizQuestionStats.get(qStatKey);
         if (!qStats) {
@@ -1006,8 +1016,10 @@ export function initSocket(io: Server): void {
         qStats.answered.add(authedSocket.user.userId);
         if (isCorrect) {
           qStats.correct.add(authedSocket.user.userId);
+          qStats.incorrect.delete(authedSocket.user.userId);
         } else {
           qStats.incorrect.add(authedSocket.user.userId);
+          qStats.correct.delete(authedSocket.user.userId);
         }
 
         const totalRoomPlayers = onlinePlayersPerQuiz.get(quizIdStr)?.size || io.sockets.adapter.rooms.get(`quiz:${quizIdStr}`)?.size || 1;

@@ -69,8 +69,11 @@ export default function PlayerQuizPage() {
   } | null>(null);
 
   const [isRevealed, setIsRevealed] = useState<boolean>(false);
-  const [totalEarnedPoints, setTotalEarnedPoints] = useState<number>(0);
-  const [correctCount, setCorrectCount] = useState<number>(0);
+  const [pointsByQuestion, setPointsByQuestion] = useState<Record<string, number>>({});
+  const [correctByQuestion, setCorrectByQuestion] = useState<Record<string, boolean>>({});
+
+  const totalEarnedPoints = Object.values(pointsByQuestion).reduce((acc, p) => acc + p, 0);
+  const correctCount = Object.values(correctByQuestion).filter(Boolean).length;
 
   // Multiplayer Live Stats
   const [playerCount, setPlayerCount] = useState<number>(1);
@@ -145,6 +148,9 @@ export default function PlayerQuizPage() {
         const limit = data.timeLimit || data.currentQuestion.timeLimit || 25;
         const elapsed = data.startedAt ? Math.floor((Date.now() - data.startedAt) / 1000) : 0;
         setTimeLeft(Math.max(1, limit - elapsed));
+        if (data.quiz?.status === 'active') {
+          setTimerActive(true);
+        }
       }
     });
 
@@ -215,10 +221,15 @@ export default function PlayerQuizPage() {
       setSubmitting(false);
       setSubmitConfirmed(true);
       setAnswerResult(data);
-      if (data.correct) {
-        setTotalEarnedPoints((prev) => prev + (data.points || 10));
-        setCorrectCount((prev) => prev + 1);
-      }
+      const qKey = String(data.questionId || currentQuestion?._id || 'curr');
+      setPointsByQuestion((prev) => ({
+        ...prev,
+        [qKey]: data.correct ? (data.points || 10) : 0,
+      }));
+      setCorrectByQuestion((prev) => ({
+        ...prev,
+        [qKey]: !!data.correct,
+      }));
     });
 
     socket.on('quiz:question_ended', (data: any) => {
@@ -294,17 +305,17 @@ export default function PlayerQuizPage() {
     };
   }, [timerActive, isRevealed, hasSubmitted, currentQuestion]);
 
-  // Player Answer Submission
+  // Player Answer Submission (allows switching answers freely while timer is active)
   const handleAnswerSubmit = (answer: any) => {
-    if (hasSubmitted || !currentQuestion || !quiz) return;
+    if (isRevealed || timeLeft <= 0 || !currentQuestion || !quiz) return;
 
     setHasSubmitted(true);
     setSubmitting(true);
     setSubmitError('');
     setSubmittedAnswer(answer);
-    const timeTaken = Math.max(1, Math.round((Date.now() - startTimeRef.current) / 1000));
+    const timeTaken = Math.max(0.5, Math.round(((Date.now() - startTimeRef.current) / 1000) * 10) / 10);
 
-    // Emit to Socket
+    // Emit to Socket for real-time live multiplayer scoring & stats
     if (token) {
       const socket = getSocket(token);
       socket.emit('player:submit_answer', {
@@ -316,37 +327,42 @@ export default function PlayerQuizPage() {
       });
     }
 
-    // Safety timeout: if server acknowledgement doesn't arrive within 6 seconds, provide Retry
+    // Safety timeout: clear submitting indicator after 4 seconds
     const timeout = setTimeout(() => {
-      setSubmitting((s) => {
-        if (s) {
-          setSubmitError('Server acknowledgement taking longer than expected. You can retry.');
-          return false;
-        }
-        return s;
-      });
-    }, 6000);
+      setSubmitting(false);
+    }, 4000);
 
-    // Also call REST fallback
-    quizzesApi
-      .submit(quiz._id, {
-        questionId: currentQuestion._id,
-        answer,
-        timeTaken,
-      })
-      .then((res: any) => {
-        clearTimeout(timeout);
-        setSubmitting(false);
-        setSubmitConfirmed(true);
-        if (res.data) {
-          setAnswerResult(res.data);
-          if (res.data.isCorrect) {
-            setTotalEarnedPoints((prev) => prev + (res.data.points || 10));
-            setCorrectCount((prev) => prev + 1);
+    // REST fallback only when socket is not available/disconnected
+    const socketInstance = token ? getSocket(token) : null;
+    if (!socketInstance || !socketInstance.connected) {
+      quizzesApi
+        .submit(quiz._id, {
+          questionId: currentQuestion._id,
+          answer,
+          timeTaken,
+        })
+        .then((res: any) => {
+          clearTimeout(timeout);
+          setSubmitting(false);
+          setSubmitConfirmed(true);
+          if (res.data) {
+            setAnswerResult(res.data);
+            const qKey = String(currentQuestion._id);
+            setPointsByQuestion((prev) => ({
+              ...prev,
+              [qKey]: res.data.correct || res.data.isCorrect ? (res.data.points || 10) : 0,
+            }));
+            setCorrectByQuestion((prev) => ({
+              ...prev,
+              [qKey]: !!(res.data.correct || res.data.isCorrect),
+            }));
           }
-        }
-      })
-      .catch(() => {});
+        })
+        .catch(() => {
+          clearTimeout(timeout);
+          setSubmitting(false);
+        });
+    }
   };
 
   if (loading) {
@@ -618,7 +634,7 @@ export default function PlayerQuizPage() {
               <FillBlankPlayer
                 question={currentQuestion}
                 onSubmit={handleAnswerSubmit}
-                disabled={hasSubmitted}
+                disabled={isRevealed || timeLeft <= 0}
                 revealed={isRevealed}
                 selectedAnswer={submittedAnswer}
                 correctAnswer={answerResult?.correctAnswer}
@@ -630,7 +646,7 @@ export default function PlayerQuizPage() {
               <ArrangeAartiPlayer
                 question={currentQuestion}
                 onSubmit={handleAnswerSubmit}
-                disabled={hasSubmitted}
+                disabled={isRevealed || timeLeft <= 0}
                 revealed={isRevealed}
                 correctOrder={answerResult?.correctAnswer}
               />
@@ -641,7 +657,7 @@ export default function PlayerQuizPage() {
               <IncorrectWordPlayer
                 question={currentQuestion}
                 onSubmit={handleAnswerSubmit}
-                disabled={hasSubmitted}
+                disabled={isRevealed || timeLeft <= 0}
                 revealed={isRevealed}
                 incorrectWord={answerResult?.correctAnswer}
                 correctWord={answerResult?.correctWord}
@@ -653,7 +669,7 @@ export default function PlayerQuizPage() {
               <IncorrectSentencePlayer
                 question={currentQuestion}
                 onSubmit={handleAnswerSubmit}
-                disabled={hasSubmitted}
+                disabled={isRevealed || timeLeft <= 0}
                 revealed={isRevealed}
                 selectedSentence={submittedAnswer}
                 correctAnswer={answerResult?.correctAnswer}
@@ -665,7 +681,7 @@ export default function PlayerQuizPage() {
               <MatchLinesPlayer
                 question={currentQuestion}
                 onSubmit={handleAnswerSubmit}
-                disabled={hasSubmitted}
+                disabled={isRevealed || timeLeft <= 0}
                 revealed={isRevealed}
               />
             )}
@@ -677,7 +693,7 @@ export default function PlayerQuizPage() {
               <StandardOptionsPlayer
                 question={currentQuestion}
                 onSubmit={handleAnswerSubmit}
-                disabled={hasSubmitted}
+                disabled={isRevealed || timeLeft <= 0}
                 revealed={isRevealed}
                 selectedAnswer={submittedAnswer}
                 correctAnswer={answerResult?.correctAnswer}
@@ -690,9 +706,14 @@ export default function PlayerQuizPage() {
             <div className="p-2.5 sm:p-3 rounded-2xl bg-pastel-mint/40 border border-pastel-mint-dark flex items-center justify-between text-xs font-black text-[#1C4D32] shadow-2xs">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-700 flex-shrink-0" />
-                <span>Answer registered! Waiting for round timer to end…</span>
+                <span>
+                  Answer recorded!{' '}
+                  <span className="font-semibold text-emerald-800">
+                    (You can switch your answer anytime before time expires)
+                  </span>
+                </span>
               </div>
-              <span className="text-emerald-800 font-bold">{timeLeft}s left</span>
+              <span className="text-emerald-800 font-bold ml-2 whitespace-nowrap">{timeLeft}s left</span>
             </div>
           )}
 
