@@ -367,7 +367,7 @@ export default function PlayerQuizPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 gap-4">
         <RefreshCw className="w-10 h-10 text-primary animate-spin" />
         <p className="text-lg font-bold text-bappa-text">Opening Aarti Quiz...</p>
       </div>
@@ -376,13 +376,15 @@ export default function PlayerQuizPage() {
 
   if (error || !quiz) {
     return (
-      <div className="card max-w-lg mx-auto text-center space-y-5 my-12 p-8 shadow-card-lg">
-        <AlertCircle className="w-12 h-12 text-error mx-auto" />
-        <h2 className="text-2xl font-black text-bappa-text">Quiz Not Found</h2>
-        <p className="text-bappa-muted">{error || 'Please check the room code and try again.'}</p>
-        <Link href="/dashboard" className="btn-primary inline-flex items-center gap-2">
-          <Home className="w-4 h-4" /> Go to Dashboard
-        </Link>
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+        <div className="card max-w-lg w-full text-center space-y-5 p-8 shadow-card-lg">
+          <AlertCircle className="w-12 h-12 text-error mx-auto" />
+          <h2 className="text-2xl font-black text-bappa-text">Quiz Not Found</h2>
+          <p className="text-bappa-muted">{error || 'Please check the room code and try again.'}</p>
+          <Link href="/dashboard" className="btn-primary inline-flex items-center gap-2">
+            <Home className="w-4 h-4" /> Go to Dashboard
+          </Link>
+        </div>
       </div>
     );
   }
@@ -390,19 +392,20 @@ export default function PlayerQuizPage() {
   // ─── 1. WAITING LOBBY (Status = 'ready') ─────────────────────────────────────
   if (quiz.status === 'ready') {
     return (
-      <div className="max-w-2xl mx-auto space-y-6 py-6 sm:py-8 px-4 page-transition">
-        <div className="flex items-center justify-between">
-          <Link
-            href="/quiz"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-bappa-muted hover:text-bappa-text px-3 py-1.5 rounded-xl bg-white border border-bappa-border hover:border-primary transition-all shadow-2xs"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> Back to Quizzes
-          </Link>
-          <div className="inline-flex items-center gap-1.5 text-xs font-black text-bappa-text px-3 py-1.5 rounded-xl bg-pastel-blue/40 border border-pastel-blue">
-            <Users className="w-3.5 h-3.5 text-primary" />
-            <span>{playerCount} Players Joined</span>
+      <div className="min-h-screen flex flex-col justify-center py-6 sm:py-10 px-4">
+        <div className="w-full max-w-2xl mx-auto space-y-6 page-transition">
+          <div className="flex items-center justify-between">
+            <Link
+              href="/quiz"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-bappa-muted hover:text-bappa-text px-3 py-1.5 rounded-xl bg-white border border-bappa-border hover:border-primary transition-all shadow-2xs"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" /> Back to Quizzes
+            </Link>
+            <div className="inline-flex items-center gap-1.5 text-xs font-black text-bappa-text px-3 py-1.5 rounded-xl bg-pastel-blue/40 border border-pastel-blue">
+              <Users className="w-3.5 h-3.5 text-primary" />
+              <span>{playerCount} Players Joined</span>
+            </div>
           </div>
-        </div>
 
         <div className="card shadow-card-lg border border-bappa-border text-center p-6 sm:p-8 space-y-6 relative overflow-hidden rounded-4xl bg-surface">
           <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-3xl bg-pastel-lavender flex items-center justify-center shadow-xs border border-pastel-lavender-dark">
@@ -456,54 +459,57 @@ export default function PlayerQuizPage() {
           </div>
         </div>
       </div>
+    </div>
     );
   }
 
   // ─── 2. COMPLETED FINAL SCREEN (Status = 'completed') ────────────────────────
   if (quiz.status === 'completed') {
     return (
-      <div className="max-w-xl mx-auto space-y-6 py-8 sm:py-10 px-4 page-transition text-center">
-        <div className="flex justify-start">
-          <Link
-            href="/quiz"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-bappa-muted hover:text-bappa-text px-3 py-1.5 rounded-xl bg-white border border-bappa-border hover:border-primary transition-all shadow-2xs"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> Back to Quizzes
-          </Link>
-        </div>
-
-        <div className="card shadow-card-lg border border-bappa-border p-6 sm:p-8 space-y-6 relative overflow-hidden rounded-4xl bg-surface">
-          <div className="w-20 h-20 mx-auto rounded-3xl bg-pastel-yellow flex items-center justify-center border border-pastel-yellow-dark shadow-pastel-yellow">
-            <Trophy className="w-10 h-10 text-gold-dark animate-pulse" />
-          </div>
-          <div className="space-y-2">
-            <span className="badge-yellow text-xs font-black uppercase tracking-wider">
-              Quiz Completed
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-black text-bappa-text">Festive Celebrations!</h1>
-            <p className="text-bappa-secondary text-xs sm:text-sm">
-              You have successfully finished the Ganapati Aarti quiz.
-            </p>
-          </div>
-
-          {/* Celebratory Score Card */}
-          <div className="bg-pastel-yellow/35 border-2 border-pastel-yellow-dark rounded-3xl p-6 sm:p-8 space-y-2 shadow-pastel-yellow">
-            <div className="text-xs font-black text-[#5A4108] uppercase tracking-wider">Your Final Score</div>
-            <div className="text-5xl sm:text-6xl font-black text-primary font-mono drop-shadow-xs">
-              {totalEarnedPoints}
-            </div>
-            <div className="text-xs font-bold text-bappa-secondary">
-              {correctCount} of {quiz.totalQuestions} questions correct
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-            <Link href="/leaderboard" className="btn-primary py-3 px-6 text-sm flex items-center justify-center gap-2">
-              <Trophy className="w-4 h-4 text-pastel-yellow" /> View Leaderboard
+      <div className="min-h-screen flex flex-col justify-center py-6 sm:py-10 px-4 text-center">
+        <div className="w-full max-w-xl mx-auto space-y-6 page-transition">
+          <div className="flex justify-start">
+            <Link
+              href="/quiz"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-bappa-muted hover:text-bappa-text px-3 py-1.5 rounded-xl bg-white border border-bappa-border hover:border-primary transition-all shadow-2xs"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" /> Back to Quizzes
             </Link>
-            <Link href="/dashboard" className="btn-outline py-3 px-6 text-sm flex items-center justify-center gap-2">
-              <Home className="w-4 h-4" /> Main Dashboard
-            </Link>
+          </div>
+
+          <div className="card shadow-card-lg border border-bappa-border p-6 sm:p-8 space-y-6 relative overflow-hidden rounded-4xl bg-surface">
+            <div className="w-20 h-20 mx-auto rounded-3xl bg-pastel-yellow flex items-center justify-center border border-pastel-yellow-dark shadow-pastel-yellow">
+              <Trophy className="w-10 h-10 text-gold-dark animate-pulse" />
+            </div>
+            <div className="space-y-2">
+              <span className="badge-yellow text-xs font-black uppercase tracking-wider">
+                Quiz Completed
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-black text-bappa-text">Festive Celebrations!</h1>
+              <p className="text-bappa-secondary text-xs sm:text-sm">
+                You have successfully finished the Ganapati Aarti quiz.
+              </p>
+            </div>
+
+            {/* Celebratory Score Card */}
+            <div className="bg-pastel-yellow/35 border-2 border-pastel-yellow-dark rounded-3xl p-6 sm:p-8 space-y-2 shadow-pastel-yellow">
+              <div className="text-xs font-black text-[#5A4108] uppercase tracking-wider">Your Final Score</div>
+              <div className="text-5xl sm:text-6xl font-black text-primary font-mono drop-shadow-xs">
+                {totalEarnedPoints}
+              </div>
+              <div className="text-xs font-bold text-bappa-secondary">
+                {correctCount} of {quiz.totalQuestions} questions correct
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+              <Link href="/leaderboard" className="btn-primary py-3 px-6 text-sm flex items-center justify-center gap-2">
+                <Trophy className="w-4 h-4 text-pastel-yellow" /> View Leaderboard
+              </Link>
+              <Link href="/dashboard" className="btn-outline py-3 px-6 text-sm flex items-center justify-center gap-2">
+                <Home className="w-4 h-4" /> Main Dashboard
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -515,10 +521,11 @@ export default function PlayerQuizPage() {
   const timerPercentage = Math.max(0, (timeLeft / maxTimer) * 100);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-3 pb-8 page-transition">
-      {/* ─── SINGLE CONSOLIDATED TOP GAME BAR ─── */}
-      <div className="bg-white rounded-3xl border border-pastel-border/80 shadow-pastel-sm p-3.5 sm:p-4 relative overflow-hidden">
-        <div className="flex items-center justify-between gap-3">
+    <div className="min-h-screen flex flex-col justify-center py-6 sm:py-10 px-4">
+      <div className="w-full max-w-3xl mx-auto space-y-3.5 page-transition">
+        {/* ─── SINGLE CONSOLIDATED TOP GAME BAR ─── */}
+        <div className="bg-white rounded-3xl border border-pastel-border/80 shadow-pastel-sm p-3.5 sm:p-4 relative overflow-hidden">
+          <div className="flex items-center justify-between gap-3">
           {/* Left: Back & Question Counter */}
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
@@ -793,6 +800,7 @@ export default function PlayerQuizPage() {
           </AnimatePresence>
         </div>
       )}
+      </div>
     </div>
   );
 }
