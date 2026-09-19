@@ -15,6 +15,18 @@ function generateRoomCode(): string {
   return code;
 }
 
+// ─── GET /api/quizzes ──────────────────────────────────────────────────────────
+// List all created & completed quizzes for host
+router.get('/', hostMiddleware, async (_req: Request, res: Response) => {
+  try {
+    const quizzes = await Quiz.find().sort({ createdAt: -1 }).populate('createdBy', 'name username');
+    return res.json({ quizzes });
+  } catch (err) {
+    console.error('Error fetching quizzes:', err);
+    return res.status(500).json({ error: 'Error loading quizzes.' });
+  }
+});
+
 // ─── GET /api/quizzes/aartis ───────────────────────────────────────────────────
 // List all verified Aartis stored in MongoDB
 router.get('/aartis', authMiddleware, async (_req: Request, res: Response) => {
@@ -33,6 +45,34 @@ router.get('/aartis', authMiddleware, async (_req: Request, res: Response) => {
   } catch (err) {
     console.error('Error fetching Aartis:', err);
     return res.status(500).json({ error: 'Error loading Aarti references.' });
+  }
+});
+
+// ─── POST /api/quizzes/:quizId/end ────────────────────────────────────────────
+// Host explicitly ends live quiz
+router.post('/:quizId/end', hostMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { quizId } = req.params;
+    const quiz = await findQuizByIdOrRoom(quizId);
+    if (!quiz) return res.status(404).json({ error: 'Quiz not found.' });
+
+    quiz.status = 'completed';
+    quiz.completedAt = new Date();
+    await quiz.save();
+
+    const io = req.app.get('io');
+    const completePayload = {
+      quizId: quiz._id.toString(),
+      roomId: quiz.roomId,
+      totalQuestions: quiz.totalQuestions,
+    };
+    io?.to(`quiz:${quiz._id}`)?.emit('quiz:completed', completePayload);
+    io?.to(`quiz:${quiz.roomId}`)?.emit('quiz:completed', completePayload);
+
+    return res.json({ message: 'Quiz marked completed.', quiz });
+  } catch (err) {
+    console.error('End quiz error:', err);
+    return res.status(500).json({ error: 'Error ending quiz.' });
   }
 });
 

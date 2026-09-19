@@ -23,6 +23,8 @@ import {
   ShieldCheck,
   Flame,
   Link2,
+  ArrowLeft,
+  ArrowRight,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { getSocket } from '@/lib/socket';
@@ -202,16 +204,22 @@ export default function HostQuizControlPage() {
   };
 
   // End Quiz
-  const handleEndQuiz = () => {
+  const handleEndQuiz = async () => {
     if (!token || !quiz) return;
-    if (!confirm('Are you sure you want to end this quiz? Final scores will be shown to all players.')) return;
+    if (!isCompleted) {
+      if (!confirm('Are you sure you want to end this quiz? Final scores will be shown to all players.')) return;
+    }
     const socket = getSocket(token);
     socket.emit('host:next_question', {
       quizId: quiz._id,
       questionIndex: questions.length,
     });
+    try {
+      await quizzesApi.end(quiz._id);
+    } catch {}
     setQuiz((q) => (q ? { ...q, status: 'completed' } : null));
     setIsTimerRunning(false);
+    router.push('/admin/quiz?tab=history');
   };
 
   // Copy Room Link / Code
@@ -259,6 +267,42 @@ export default function HostQuizControlPage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-20 page-transition">
+      {/* ─── TOP RETURN BAR ─── */}
+      <div className="flex items-center justify-between">
+        <button
+          onClick={() => router.push('/admin/quiz?tab=history')}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white border border-pastel-border/80 text-xs font-black text-bappa-text hover:bg-pastel-surface transition-all shadow-pastel-sm hover:scale-[1.02] active:scale-[0.98]"
+        >
+          <ArrowLeft className="w-4 h-4 text-primary" /> Back to Quiz Manager
+        </button>
+        {isCompleted && (
+          <span className="text-xs font-black px-3.5 py-1.5 bg-pastel-mint text-emerald-900 border border-pastel-mint rounded-full flex items-center gap-1.5 shadow-xs">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Quiz Completed
+          </span>
+        )}
+      </div>
+
+      {/* ─── QUIZ COMPLETED BANNER ─── */}
+      {isCompleted && (
+        <div className="bg-gradient-to-r from-pastel-mint/90 via-pastel-blue/60 to-pastel-lavender/80 border border-pastel-mint p-5 sm:p-6 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-pastel-sm">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-white flex items-center justify-center text-emerald-700 shadow-xs flex-shrink-0">
+              <CheckCircle2 className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="font-black text-bappa-text text-base sm:text-lg">This Quiz Has Ended</div>
+              <div className="text-xs text-bappa-muted font-bold">All final scores have been calculated and presented to players.</div>
+            </div>
+          </div>
+          <button
+            onClick={() => router.push('/admin/quiz?tab=history')}
+            className="btn-primary py-2.5 px-6 text-xs font-black flex items-center gap-2 shadow-xs whitespace-nowrap hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <ArrowLeft className="w-4 h-4" /> Return to Quiz Manager
+          </button>
+        </div>
+      )}
+
       {/* ─── PROMINENT GAME ROOM CODE BANNER ─── */}
       <div className="bg-white rounded-3xl border border-pastel-border/80 p-6 sm:p-8 shadow-pastel-sm text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="space-y-2">
@@ -514,18 +558,27 @@ export default function HostQuizControlPage() {
               </div>
 
               <div className="flex items-center gap-2 ml-auto">
-                <button
-                  onClick={handleNextQuestion}
-                  disabled={isCompleted}
-                  className="btn-primary py-2.5 px-6 text-xs flex items-center gap-2 shadow-pastel-sm hover:scale-[1.02] active:scale-[0.98]"
-                >
-                  <span>
-                    {currentIndex + 1 >= questions.length
-                      ? 'Finish Quiz'
-                      : 'Next Question'}
-                  </span>
-                  <SkipForward className="w-4 h-4" />
-                </button>
+                {isCompleted ? (
+                  <button
+                    onClick={() => router.push('/admin/quiz?tab=history')}
+                    className="btn-primary py-2.5 px-6 text-xs flex items-center gap-2 shadow-pastel-sm hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span>Back to Quiz Manager</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleNextQuestion}
+                    className="btn-primary py-2.5 px-6 text-xs flex items-center gap-2 shadow-pastel-sm hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <span>
+                      {currentIndex + 1 >= questions.length
+                        ? 'Finish Quiz'
+                        : 'Next Question'}
+                    </span>
+                    <SkipForward className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -600,9 +653,10 @@ export default function HostQuizControlPage() {
               </div>
               <button
                 onClick={handleEndQuiz}
-                className="text-xs text-rose-600 font-black hover:underline flex items-center gap-1"
+                className="text-xs text-rose-600 font-black hover:underline flex items-center gap-1.5 px-2.5 py-1 rounded-xl hover:bg-rose-50 transition-all"
               >
-                <LogOut className="w-3.5 h-3.5" /> End Quiz
+                <LogOut className="w-3.5 h-3.5" />
+                <span>{isCompleted ? 'Exit to Quiz Manager' : 'End Quiz'}</span>
               </button>
             </div>
 

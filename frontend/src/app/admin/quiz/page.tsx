@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -8,7 +8,8 @@ import {
   Sparkles, CheckCircle2, RotateCcw, Play, Trash2, Edit3,
   ArrowUp, ArrowDown, BookOpen, AlertCircle, Loader2,
   ShieldCheck, HelpCircle, Layers, Check, Clock,
-  Search, Link2, Scale, PlusCircle, Edit2, CheckCircle
+  Search, Link2, Scale, PlusCircle, Edit2, CheckCircle,
+  Copy, RefreshCw, ChevronRight, ArrowLeft
 } from 'lucide-react';
 import { quizzesApi, quizApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -61,7 +62,24 @@ const getQuestionTypeIcon = (type: AartiQuestionType) => {
 export default function UnifiedQuizManagerPage() {
   const router = useRouter();
   const { token, user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'generator' | 'bank'>('generator');
+  const [activeTab, setActiveTab] = useState<'generator' | 'history' | 'bank'>('generator');
+
+  // ─── Quiz History & Done Quizzes States ───────────────────────────────────────
+  const [quizList, setQuizList] = useState<DynamicQuiz[]>([]);
+  const [loadingQuizList, setLoadingQuizList] = useState(false);
+  const [copiedQuizId, setCopiedQuizId] = useState<string | null>(null);
+
+  const loadQuizList = useCallback(async () => {
+    try {
+      setLoadingQuizList(true);
+      const res = await quizzesApi.getAll();
+      setQuizList(res.data.quizzes || []);
+    } catch {
+      // ignore
+    } finally {
+      setLoadingQuizList(false);
+    }
+  }, []);
 
   // ─── AI Aarti Generator States ────────────────────────────────────────────────
   const [aartis, setAartis] = useState<AartiItem[]>([]);
@@ -98,8 +116,17 @@ export default function UnifiedQuizManagerPage() {
   const [bankFilter, setBankFilter] = useState('All');
   const [bankError, setBankError] = useState('');
 
-  // Load verified Aartis from MongoDB
+  // Load verified Aartis and past Quizzes from MongoDB
   useEffect(() => {
+    loadQuizList();
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get('tab');
+      if (tab === 'history' || tab === 'done' || tab === 'list') {
+        setActiveTab('history');
+      }
+    }
+
     quizzesApi
       .getAartis()
       .then((res) => {
@@ -111,7 +138,7 @@ export default function UnifiedQuizManagerPage() {
         setGeneratorError('Failed to load Aartis from database.');
       })
       .finally(() => setLoadingAartis(false));
-  }, []);
+  }, [loadQuizList]);
 
   // Listen to real-time socket progress for generation
   useEffect(() => {
@@ -349,7 +376,7 @@ export default function UnifiedQuizManagerPage() {
         </div>
 
         {/* Unified Tabs */}
-        <div className="flex items-center bg-white p-1.5 rounded-2xl border border-pastel-border/80 shadow-pastel-sm">
+        <div className="flex flex-wrap items-center bg-white p-1.5 rounded-2xl border border-pastel-border/80 shadow-pastel-sm gap-1">
           <button
             type="button"
             onClick={() => setActiveTab('generator')}
@@ -359,7 +386,26 @@ export default function UnifiedQuizManagerPage() {
                 : 'text-bappa-muted hover:text-bappa-text'
             }`}
           >
-            <Sparkles className="w-4 h-4 text-primary" /> AI Aarti Generator
+            <Sparkles className="w-4 h-4 text-primary" /> Create Quiz
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('history');
+              loadQuizList();
+            }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+              activeTab === 'history'
+                ? 'bg-pastel-blue text-bappa-text shadow-xs'
+                : 'text-bappa-muted hover:text-bappa-text'
+            }`}
+          >
+            <Layers className="w-4 h-4 text-primary" /> Quizzes Done & Live
+            {quizList.length > 0 && (
+              <span className="ml-1 px-2 py-0.5 bg-white/80 text-bappa-text text-[10px] font-black rounded-full shadow-xs">
+                {quizList.length}
+              </span>
+            )}
           </button>
           <button
             type="button"
@@ -384,6 +430,36 @@ export default function UnifiedQuizManagerPage() {
             <div className="bg-pastel-pink/40 border border-pastel-pink text-error rounded-2xl p-4 flex items-center gap-3 text-sm font-bold">
               <AlertCircle className="w-5 h-5 flex-shrink-0" />
               <span>{generatorError}</span>
+            </div>
+          )}
+
+          {/* Quick link to Quizzes Done & Live */}
+          {quizList.length > 0 && !generatedQuiz && (
+            <div className="bg-gradient-to-r from-pastel-blue/50 via-pastel-lavender/40 to-pastel-mint/40 border border-pastel-border/80 rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-pastel-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-primary shadow-xs flex-shrink-0">
+                  <Layers className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="font-black text-bappa-text text-sm">
+                    {quizList.filter((q) => q.status === 'completed').length} Completed Quizzes & {quizList.filter((q) => q.status !== 'completed').length} Live/Ready
+                  </div>
+                  <div className="text-xs text-bappa-muted font-bold">
+                    View list of completed quizzes, re-open host control rooms, or copy player invite links.
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('history');
+                  loadQuizList();
+                }}
+                className="btn-outline py-2 px-4 text-xs font-black flex items-center gap-1.5 whitespace-nowrap hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <span>View Quizzes Done & Live</span>
+                <ChevronRight className="w-3.5 h-3.5 text-primary" />
+              </button>
             </div>
           )}
 
@@ -857,7 +933,213 @@ export default function UnifiedQuizManagerPage() {
       )}
 
       {/* ══════════════════════════════════════════════════════════════════════════════
-          TAB 2: CUSTOM QUESTION BANK
+          TAB 2: QUIZZES DONE & ACTIVE LIVE SESSIONS
+         ══════════════════════════════════════════════════════════════════════════════ */}
+      {activeTab === 'history' && (
+        <div className="space-y-6">
+          {/* Header Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 sm:p-7 rounded-3xl border border-pastel-border/80 shadow-pastel-sm">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-pastel-mint/80 text-emerald-900 rounded-full text-xs font-black mb-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Host Quiz History
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-bappa-text tracking-tight">List of Quizzes Done & Live</h2>
+              <p className="text-bappa-muted text-xs sm:text-sm font-medium mt-1">
+                Review completed Aarti quiz games, jump to host control rooms, or copy player invite links.
+              </p>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => loadQuizList()}
+                className="btn-outline py-2.5 px-4 text-xs font-bold flex items-center gap-1.5"
+                title="Refresh Quiz List"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loadingQuizList ? 'animate-spin text-primary' : ''}`} />
+                <span>Refresh</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('generator')}
+                className="btn-primary py-2.5 px-5 text-xs font-bold flex items-center gap-1.5 shadow-pastel-sm"
+              >
+                <PlusCircle className="w-4 h-4" /> Create Quiz
+              </button>
+            </div>
+          </div>
+
+          {/* Quick Metrics Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-white p-5 rounded-3xl border border-pastel-border/80 shadow-pastel-sm">
+              <div className="text-xs font-black text-bappa-muted uppercase tracking-wider">Total Quizzes</div>
+              <div className="text-3xl font-black text-bappa-text mt-1">{quizList.length}</div>
+              <div className="text-xs text-bappa-muted font-medium mt-1">Generated and hosted</div>
+            </div>
+            <div className="bg-pastel-mint/50 p-5 rounded-3xl border border-pastel-mint shadow-pastel-sm">
+              <div className="text-xs font-black text-emerald-900 uppercase tracking-wider">Quizzes Completed</div>
+              <div className="text-3xl font-black text-emerald-800 mt-1">
+                {quizList.filter((q) => q.status === 'completed').length}
+              </div>
+              <div className="text-xs text-emerald-700 font-medium mt-1">Concluded with final scores</div>
+            </div>
+            <div className="bg-pastel-yellow/50 p-5 rounded-3xl border border-pastel-yellow shadow-pastel-sm">
+              <div className="text-xs font-black text-amber-900 uppercase tracking-wider">Live & Ready</div>
+              <div className="text-3xl font-black text-amber-800 mt-1">
+                {quizList.filter((q) => q.status !== 'completed').length}
+              </div>
+              <div className="text-xs text-amber-700 font-medium mt-1">Active or waiting rooms</div>
+            </div>
+          </div>
+
+          {/* Quizzes List */}
+          {loadingQuizList ? (
+            <div className="bg-white rounded-3xl p-12 text-center space-y-3 border border-pastel-border/80 shadow-pastel-sm">
+              <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto" />
+              <p className="text-sm font-bold text-bappa-muted">Loading quizzes list…</p>
+            </div>
+          ) : quizList.length === 0 ? (
+            <div className="bg-white rounded-3xl p-12 text-center space-y-4 border border-pastel-border/80 shadow-pastel-sm">
+              <div className="w-14 h-14 bg-pastel-lavender rounded-2xl flex items-center justify-center mx-auto text-primary shadow-xs">
+                <Layers className="w-7 h-7" />
+              </div>
+              <h3 className="text-xl font-black text-bappa-text">No Quizzes Created Yet</h3>
+              <p className="text-sm text-bappa-muted max-w-md mx-auto">
+                Generate your first dynamic AI Aarti quiz room to host multiplayer quiz games.
+              </p>
+              <button
+                type="button"
+                onClick={() => setActiveTab('generator')}
+                className="btn-primary py-2.5 px-6 text-xs inline-flex items-center gap-2 shadow-pastel-sm"
+              >
+                <PlusCircle className="w-4 h-4" /> Create Your First Quiz
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3.5">
+              {quizList.map((item, idx) => {
+                const isCompleted = item.status === 'completed';
+                const cleanItemTitle =
+                  item.title
+                    ?.replace(/^Aarti Knowledge Quiz\s*\([^)]*\)/i, 'Ganapati Aarti Quiz')
+                    .replace(/\([^)]*\)/g, '')
+                    .trim() || 'Ganapati Aarti Quiz';
+
+                return (
+                  <motion.div
+                    key={item._id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.03 }}
+                    className="bg-white rounded-3xl p-5 sm:p-6 border border-pastel-border/80 shadow-pastel-sm flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-pastel-blue transition-all"
+                  >
+                    <div className="flex items-start sm:items-center gap-4">
+                      {/* Room Code Badge */}
+                      <div className="flex flex-col items-center justify-center w-24 sm:w-28 py-2.5 px-2 rounded-2xl bg-pastel-surface border border-pastel-border text-center flex-shrink-0">
+                        <span className="text-[10px] font-black text-bappa-muted uppercase tracking-wider">Room Code</span>
+                        <span className="text-lg sm:text-xl font-black font-mono text-primary tracking-wider">
+                          {item.roomId}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(item.roomId);
+                            setCopiedQuizId(item._id);
+                            setTimeout(() => setCopiedQuizId(null), 2000);
+                          }}
+                          className="text-[10px] font-bold text-bappa-muted hover:text-primary flex items-center gap-1 mt-1 transition-colors"
+                        >
+                          {copiedQuizId === item._id ? (
+                            <span className="text-emerald-600 flex items-center gap-0.5">
+                              <Check className="w-3 h-3" /> Copied
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-0.5">
+                              <Copy className="w-3 h-3" /> Copy
+                            </span>
+                          )}
+                        </button>
+                      </div>
+
+                      {/* Main Details */}
+                      <div className="space-y-1.5 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider ${
+                              isCompleted
+                                ? 'bg-pastel-mint text-emerald-900 border border-pastel-mint'
+                                : item.status === 'active'
+                                ? 'bg-pastel-yellow text-amber-900 border border-pastel-yellow animate-pulse'
+                                : 'bg-pastel-lavender text-bappa-text border border-pastel-lavender'
+                            }`}
+                          >
+                            {isCompleted ? '✓ Completed' : item.status === 'active' ? '● Live' : 'Ready'}
+                          </span>
+                          <span className="text-xs bg-pastel-surface px-2.5 py-0.5 rounded-full font-bold text-bappa-text border border-pastel-border/60">
+                            {item.difficulty?.toUpperCase()} • {item.totalQuestions} Questions
+                          </span>
+                        </div>
+                        <h3 className="text-lg font-black text-bappa-text truncate">{cleanItemTitle}</h3>
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-bappa-muted font-medium">
+                          {item.sourceAartis && item.sourceAartis.length > 0 && (
+                            <span>{item.sourceAartis.length} Sacred Aartis</span>
+                          )}
+                          <span>•</span>
+                          <span>
+                            {item.completedAt
+                              ? `Ended: ${new Date(item.completedAt).toLocaleDateString()} ${new Date(item.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                              : `Created: ${new Date(item.createdAt).toLocaleDateString()} ${new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-wrap items-center gap-2.5 pt-2 md:pt-0 border-t md:border-t-0 border-pastel-border/60">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const link = `${window.location.origin}/quiz/${item.roomId}`;
+                          navigator.clipboard.writeText(link);
+                          setCopiedQuizId(`link-${item._id}`);
+                          setTimeout(() => setCopiedQuizId(null), 2000);
+                        }}
+                        className="btn-outline py-2 px-3 text-xs font-bold flex items-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
+                      >
+                        {copiedQuizId === `link-${item._id}` ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>Link Copied!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Link2 className="w-3.5 h-3.5" />
+                            <span>Player Link</span>
+                          </>
+                        )}
+                      </button>
+
+                      <Link
+                        href={`/admin/quiz/control/${item._id}`}
+                        className={`py-2 px-4 rounded-2xl text-xs font-black flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] active:scale-[0.98] ${
+                          isCompleted
+                            ? 'bg-pastel-surface hover:bg-pastel-surface/80 text-bappa-text border border-pastel-border'
+                            : 'btn-primary'
+                        }`}
+                      >
+                        <Play className="w-3.5 h-3.5 text-primary" />
+                        <span>{isCompleted ? 'View Host Room' : 'Open Control Room'}</span>
+                      </Link>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════════════════
+          TAB 3: CUSTOM QUESTION BANK
          ══════════════════════════════════════════════════════════════════════════════ */}
       {activeTab === 'bank' && (
         <div className="space-y-6">

@@ -104,8 +104,10 @@ export const quizzesApi = {
     selectedTypes: string[];
     sourceAartis: string[];
   }) => api.post('/api/quizzes/generate', data),
+  getAll: () => api.get('/api/quizzes'),
   get: (quizId: string) => api.get(`/api/quizzes/${quizId}`),
   start: (quizId: string) => api.post(`/api/quizzes/${quizId}/start`),
+  end: (quizId: string) => api.post(`/api/quizzes/${quizId}/end`),
   submit: (quizId: string, data: { questionId: string; answer: any; timeTaken?: number }) =>
     api.post(`/api/quizzes/${quizId}/submit`, data),
   regenerateQuestion: (quizId: string, questionId: string, type?: string) =>
