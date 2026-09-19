@@ -72,7 +72,7 @@ export default function StandardOptionsPlayer({
         </div>
       )}
 
-      <div className={`grid ${options.length === 2 ? 'grid-cols-2' : 'sm:grid-cols-2'} gap-3.5`}>
+      <div className={`grid ${options.length === 2 ? 'grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'} gap-3 sm:gap-4`}>
         {options.map((option, i) => {
           const theme = PASTEL_OPTION_THEMES[i % PASTEL_OPTION_THEMES.length];
           const isSelected = (picked === option || selectedAnswer === option);
@@ -101,11 +101,11 @@ export default function StandardOptionsPlayer({
               whileTap={{ scale: disabled || revealed ? 1 : 0.98 }}
               onClick={() => handleSelect(option)}
               disabled={disabled || revealed}
-              className={`flex items-center justify-between p-3 sm:p-3.5 rounded-2xl text-left font-bold text-sm sm:text-base transition-all duration-200 cursor-pointer ${cardStyle} ${disabled && !isSelected ? 'cursor-not-allowed' : ''}`}
+              className={`flex items-center justify-between p-4 sm:p-5 rounded-2xl sm:rounded-3xl text-left font-bold text-base sm:text-lg min-h-[68px] sm:min-h-[76px] transition-all duration-200 shadow-2xs hover:shadow-xs cursor-pointer ${cardStyle} ${disabled && !isSelected ? 'cursor-not-allowed' : ''}`}
             >
-              <div className="flex items-center gap-3 min-w-0">
+              <div className="flex items-center gap-3.5 min-w-0">
                 <span
-                  className={`w-8 h-8 rounded-xl border flex items-center justify-center text-xs font-black flex-shrink-0 ${
+                  className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl border-2 flex items-center justify-center text-sm font-black flex-shrink-0 ${
                     revealed && isCorrect
                       ? 'bg-[#4E9F6E] text-white border-[#4E9F6E]'
                       : revealed && isSelected
@@ -117,11 +117,11 @@ export default function StandardOptionsPlayer({
                 >
                   {options.length === 2 ? (i === 0 ? '✓' : '✗') : String.fromCharCode(65 + i)}
                 </span>
-                <span className="truncate">{option}</span>
+                <span className="leading-snug break-words">{option}</span>
               </div>
               {isSelected && (
                 <CheckCircle2
-                  className={`w-5 h-5 flex-shrink-0 ml-2 ${
+                  className={`w-6 h-6 flex-shrink-0 ml-2 ${
                     revealed && isCorrect ? 'text-[#4E9F6E]' : 'text-primary'
                   }`}
                 />

@@ -38,6 +38,11 @@ import {
   StandardOptionsPlayer,
 } from '@/components/quiz';
 
+function cleanQuizTitle(title?: string) {
+  if (!title) return 'Ganapati Aarti Quiz';
+  return title.replace(/\s*\([^)]*\)/g, '').trim() || 'Ganapati Aarti Quiz';
+}
+
 export default function PlayerQuizPage() {
   const params = useParams();
   const router = useRouter();
@@ -521,121 +526,119 @@ export default function PlayerQuizPage() {
   const timerPercentage = Math.max(0, (timeLeft / maxTimer) * 100);
 
   return (
-    <div className="min-h-screen flex flex-col justify-center py-6 sm:py-10 px-4">
-      <div className="w-full max-w-3xl mx-auto space-y-3.5 page-transition">
-        {/* ─── SINGLE CONSOLIDATED TOP GAME BAR ─── */}
-        <div className="bg-white rounded-3xl border border-pastel-border/80 shadow-pastel-sm p-3.5 sm:p-4 relative overflow-hidden">
-          <div className="flex items-center justify-between gap-3">
-          {/* Left: Back & Question Counter */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="/quiz"
-              className="inline-flex items-center gap-1 text-xs font-black text-bappa-muted hover:text-bappa-text px-2.5 py-1.5 rounded-xl bg-pastel-surface hover:bg-pastel-blue/40 transition-all border border-pastel-border shadow-2xs"
-              title="Back to Quizzes"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Quizzes</span>
-            </Link>
+    <div className="min-h-screen flex flex-col justify-center py-6 sm:py-8 px-4 sm:px-6">
+      <div className="w-full max-w-4xl mx-auto page-transition">
+        {/* ─── SINGLE UNIFIED MASTER GAME ARENA ─── */}
+        <div className="bg-white rounded-3xl sm:rounded-4xl border-2 border-pastel-border shadow-pastel-md overflow-hidden">
+          {/* ─── TOP HUD HEADER ─── */}
+          <div className="bg-[#FAF7F2] border-b border-pastel-border/70 px-4 py-3.5 sm:px-6 sm:py-4.5 relative">
+            <div className="flex items-center justify-between gap-3">
+              {/* Left: Back & Question Counter */}
+              <div className="flex items-center gap-2.5 sm:gap-3.5">
+                <Link
+                  href="/quiz"
+                  className="inline-flex items-center gap-1.5 text-xs font-black text-bappa-muted hover:text-bappa-text px-3 py-1.5 rounded-xl bg-white border border-pastel-border hover:border-primary transition-all shadow-2xs"
+                  title="Back to Quizzes"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Quizzes</span>
+                </Link>
 
-            <div className="flex items-center gap-2">
-              <span className="w-8 h-8 rounded-xl bg-pastel-lavender text-primary font-black flex items-center justify-center text-xs sm:text-sm border border-pastel-lavender-dark shadow-xs">
-                {currentIndex + 1}
-              </span>
-              <div>
-                <div className="text-[10px] font-black text-bappa-muted uppercase tracking-wider">
-                  Question {currentIndex + 1} of {quiz.totalQuestions}
+                <div className="flex items-center gap-2">
+                  <span className="w-8 h-8 rounded-xl bg-pastel-lavender text-primary font-black flex items-center justify-center text-xs sm:text-sm border border-pastel-lavender-dark shadow-xs">
+                    {currentIndex + 1}
+                  </span>
+                  <div>
+                    <div className="text-[10px] font-black text-bappa-muted uppercase tracking-wider">
+                      Question {currentIndex + 1} of {quiz.totalQuestions}
+                    </div>
+                    <div className="text-xs font-black text-bappa-text truncate max-w-[130px] sm:max-w-xs">
+                      {cleanQuizTitle(quiz.title)}
+                    </div>
+                  </div>
                 </div>
-                <div className="text-xs font-black text-bappa-text truncate max-w-[120px] sm:max-w-xs">
-                  Ganapati Aarti Quiz
+              </div>
+
+              {/* Center: Live Timer */}
+              <div className="flex items-center justify-center">
+                <div
+                  className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full font-black text-xs sm:text-sm border transition-all ${
+                    timeLeft <= 5 && timerActive
+                      ? 'bg-pastel-pink text-error border-pastel-pink-dark animate-pulse shadow-xs'
+                      : 'bg-pastel-blue/60 text-[#204068] border-pastel-blue'
+                  }`}
+                >
+                  <Timer className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="font-mono">{timeLeft}s</span>
+                </div>
+              </div>
+
+              {/* Right: Players & Score */}
+              <div className="flex items-center gap-2">
+                <div className="hidden sm:flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-xl bg-pastel-blue/40 border border-pastel-blue text-[#204068]">
+                  <Users className="w-3.5 h-3.5 text-primary" />
+                  <span>{playerCount} in Room</span>
+                  <span className="text-bappa-muted font-normal">•</span>
+                  <Sparkles className="w-3 h-3 text-emerald-800" />
+                  <span>{answeredCount}/{playerCount}</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-pastel-yellow/60 text-bappa-text font-black text-xs sm:text-sm border border-pastel-yellow shadow-xs">
+                  <Trophy className="w-3.5 h-3.5 text-gold-dark" />
+                  <span>{totalEarnedPoints} pts</span>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Center: Live Timer */}
-          <div className="flex flex-col items-center justify-center">
-            <div
-              className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full font-black text-xs sm:text-sm border transition-all ${
-                timeLeft <= 5 && timerActive
-                  ? 'bg-pastel-pink text-error border-pastel-pink-dark animate-pulse shadow-xs'
-                  : 'bg-pastel-blue/50 text-[#204068] border-pastel-blue'
-              }`}
-            >
-              <Timer className="w-3.5 h-3.5" />
-              <span>{timeLeft}s</span>
+            {/* Integrated Bottom Countdown Progress Line */}
+            <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-pastel-surface">
+              <motion.div
+                className={`h-full transition-all duration-300 ${
+                  timeLeft <= 5 ? 'bg-rose-500' : timeLeft <= 10 ? 'bg-amber-400' : 'bg-emerald-500'
+                }`}
+                style={{ width: `${timerPercentage}%` }}
+              />
             </div>
           </div>
 
-          {/* Right: Players & Score */}
-          <div className="flex items-center gap-2">
-            <div className="hidden sm:flex items-center gap-1.5 text-xs font-black px-2.5 py-1 rounded-xl bg-pastel-blue/40 border border-pastel-blue text-[#204068]">
-              <Users className="w-3.5 h-3.5 text-primary" />
-              <span>{playerCount}</span>
-              <span className="text-bappa-muted font-normal">•</span>
-              <Sparkles className="w-3 h-3 text-emerald-800" />
-              <span>{answeredCount}/{playerCount}</span>
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-pastel-yellow/50 text-bappa-text font-black text-xs border border-pastel-yellow shadow-xs">
-              <Trophy className="w-3.5 h-3.5 text-gold-dark" />
-              <span>{totalEarnedPoints} pts</span>
-            </div>
-          </div>
-        </div>
+          {/* ─── MAIN QUESTION ARENA ─── */}
+          {currentQuestion && (
+            <div className="p-5 sm:p-7 md:p-8 space-y-5 sm:space-y-6">
+              {/* Header Row Inside Card: Type Badge + Points + (No bracketed title) */}
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-pastel-border/60 pb-3.5">
+                <div className="flex items-center gap-2">
+                  <span className="badge-lavender text-xs font-black uppercase tracking-wider py-1 px-3">
+                    <Sparkles className="w-3.5 h-3.5 text-primary" />
+                    {QUESTION_TYPE_LABELS[currentQuestion.type as keyof typeof QUESTION_TYPE_LABELS]?.label ||
+                      currentQuestion.type}
+                  </span>
+                  <span className="text-xs font-black text-emerald-900 bg-pastel-mint px-3 py-1 rounded-full border border-pastel-mint-dark">
+                    +{currentQuestion.points || 10} pts
+                  </span>
+                </div>
 
-        {/* Integrated Bottom Countdown Progress Line */}
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-pastel-surface">
-          <motion.div
-            className={`h-full transition-all duration-300 ${
-              timeLeft <= 5 ? 'bg-rose-500' : timeLeft <= 10 ? 'bg-amber-400' : 'bg-emerald-500'
-            }`}
-            style={{ width: `${timerPercentage}%` }}
-          />
-        </div>
-      </div>
-
-      {/* ─── SINGLE UNIFIED QUESTION CARD ─── */}
-      {currentQuestion && (
-        <div className="bg-white rounded-3xl border border-pastel-border/80 shadow-pastel-sm p-4 sm:p-6 space-y-3 sm:space-y-4 relative">
-          {/* Header Row Inside Card: Type Badge + Points + Inline Round Breakdown */}
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-pastel-border/60 pb-3">
-            <div className="flex items-center gap-2">
-              <span className="badge-lavender text-xs font-black uppercase tracking-wider py-1 px-2.5">
-                <Sparkles className="w-3.5 h-3.5 text-primary" />
-                {QUESTION_TYPE_LABELS[currentQuestion.type as keyof typeof QUESTION_TYPE_LABELS]?.label ||
-                  currentQuestion.type}
-              </span>
-              <span className="text-xs font-black text-emerald-900 bg-pastel-mint px-2.5 py-0.5 rounded-full border border-pastel-mint-dark">
-                +{currentQuestion.points || 10} pts
-              </span>
-            </div>
-
-            {/* Inline Round Results when revealed */}
-            {isRevealed && roundStats ? (
-              <div className="flex items-center gap-1.5 text-xs font-black">
-                <span className="text-emerald-900 bg-pastel-mint/80 px-2.5 py-0.5 rounded-lg border border-pastel-mint-dark">
-                  ✅ {roundStats.correctCount} Correct
-                </span>
-                <span className="text-rose-900 bg-pastel-pink/80 px-2.5 py-0.5 rounded-lg border border-pastel-pink-dark">
-                  ❌ {roundStats.incorrectCount} Incorrect
-                </span>
-                <span className="text-bappa-muted text-[11px] font-bold ml-1 hidden sm:inline">
-                  ({roundStats.answeredCount}/{roundStats.totalPlayers} answered)
-                </span>
+                {/* Inline Round Results when revealed */}
+                {isRevealed && roundStats && (
+                  <div className="flex items-center gap-1.5 text-xs font-black">
+                    <span className="text-emerald-900 bg-pastel-mint/80 px-2.5 py-1 rounded-lg border border-pastel-mint-dark">
+                      ✅ {roundStats.correctCount} Correct
+                    </span>
+                    <span className="text-rose-900 bg-pastel-pink/80 px-2.5 py-1 rounded-lg border border-pastel-pink-dark">
+                      ❌ {roundStats.incorrectCount} Incorrect
+                    </span>
+                    <span className="text-bappa-muted text-[11px] font-bold ml-1 hidden sm:inline">
+                      ({roundStats.answeredCount}/{roundStats.totalPlayers} answered)
+                    </span>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="text-xs font-bold text-bappa-muted">
-                {quiz.title || 'Ganapati Aarti Quiz'}
-              </div>
-            )}
-          </div>
 
-          {/* Question Heading */}
-          <h2 className="text-lg sm:text-xl font-black text-bappa-text leading-snug">
-            {currentQuestion.question}
-          </h2>
+              {/* Question Heading */}
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-bappa-text leading-snug tracking-tight">
+                {currentQuestion.question}
+              </h2>
 
-          {/* DYNAMIC INTERACTIVE QUESTION COMPONENT */}
-          <div className="pt-2">
+              {/* DYNAMIC INTERACTIVE QUESTION COMPONENT */}
+              <div className="pt-2">
             {/* 1. Fill In The Blanks */}
             {currentQuestion.type === 'fill_blank_options' && (
               <FillBlankPlayer
@@ -798,8 +801,9 @@ export default function PlayerQuizPage() {
               </motion.div>
             )}
           </AnimatePresence>
+          </div>
+        )}
         </div>
-      )}
       </div>
     </div>
   );
