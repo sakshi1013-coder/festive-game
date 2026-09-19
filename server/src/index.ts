@@ -28,10 +28,16 @@ async function main() {
   // ─── Express ──────────────────────────────────────────────────────────────
   const app = express();
 
+  // Allow all Vercel domains (*.vercel.app), localhost, and custom frontend URLs
   app.use(
     cors({
-      origin: [FRONTEND_URL, 'http://localhost:3000'],
+      origin: (requestOrigin, callback) => {
+        // Allow requests with no origin or any frontend client (Vercel, localhost, etc.)
+        callback(null, true);
+      },
       credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
     })
   );
   app.use(express.json());
@@ -51,7 +57,7 @@ async function main() {
 
   const io = new Server(httpServer, {
     cors: {
-      origin: [FRONTEND_URL, 'http://localhost:3000'],
+      origin: true,
       methods: ['GET', 'POST'],
       credentials: true,
     },
