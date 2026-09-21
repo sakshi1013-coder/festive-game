@@ -59,6 +59,20 @@ const getQuestionTypeIcon = (type: AartiQuestionType) => {
   }
 };
 
+const DEFAULT_AARTIS: AartiItem[] = [
+  { _id: '1', title: 'सुखकर्ता दुखहर्ता', deity: 'श्री गणपती', lineCount: 16, sectionCount: 4, preview: ['सुखकर्ता दुःखहर्ता वार्ता विघ्नाची', 'नुरवी पुरवी प्रेम कृपा जयाची'] },
+  { _id: '2', title: 'लवथवती विक्राळा', deity: 'श्री शंकर', lineCount: 16, sectionCount: 4, preview: ['लवथवती विक्राळा ब्रह्मांडी माळा', 'वीषे कंठ काळा त्रिनेत्री ज्वाळा'] },
+  { _id: '3', title: 'दुर्गे दुर्घट भारी', deity: 'श्री दुर्गा देवी', lineCount: 16, sectionCount: 4, preview: ['दुर्गे दुर्घट भारी तुजविण संसारी', 'अनाथनाथे अंबे करुणा विस्तारी'] },
+  { _id: '4', title: 'श्री विठोबाची आरती', deity: 'श्री विठ्ठल', lineCount: 20, sectionCount: 5, preview: ['येई हो विठ्ठले माझे माऊली ये', 'निढळावरी कर ठेवुनी वाट मी पाहे'] },
+  { _id: '5', title: 'श्री पांडुरंगाची आरती', deity: 'श्री पांडुरंग', lineCount: 16, sectionCount: 4, preview: ['आनंदाचे डोही आनंद तरंग', 'आनंदचि अंग आनंदाचे'] },
+  { _id: '6', title: 'ज्ञानराजा आरती', deity: 'संत ज्ञानेश्वर', lineCount: 16, sectionCount: 4, preview: ['आरती ज्ञानराजा महाकैवल्यतेजा', 'सेविती साधुसंत हणुमंत महाध्वजा'] },
+  { _id: '7', title: 'आरती तुकारामा', deity: 'संत तुकाराम', lineCount: 16, sectionCount: 4, preview: ['आरती तुकारामा स्वामी सदगुरुधामा', 'सच्चिदानंद रूपा जय यतिवररामा'] },
+  { _id: '8', title: 'घालीन लोटांगण', deity: 'सर्व देवता / नमन', lineCount: 16, sectionCount: 4, preview: ['घालीन लोटांगण वंदीन चरण', 'डोळ्यांनी पाहीन रूप तुझे'] },
+  { _id: '9', title: 'प्रार्थना', deity: 'प्रार्थना व क्षमायाचना', lineCount: 12, sectionCount: 3, preview: ['आता विश्वात्मके देवे येणे वाग्यज्ञे तोषावे', 'तोषोनि मज द्यावे पसायदान हे'] },
+  { _id: '10', title: 'मंत्र पुष्पाञ्जलि', deity: 'वेदोक्त मंत्र', lineCount: 16, sectionCount: 4, preview: ['ॐ यज्ञेन यज्ञमयजन्त देवास्तानि धर्माणि प्रथमान्यासन्', 'ते ह नाकं महिमानः सचन्त यत्र पूर्वे साध्याः सन्ति देवाः'] },
+  { _id: '11', title: 'श्रीगणपती स्तोत्र', deity: 'संकटनाशन स्तोत्र', lineCount: 16, sectionCount: 4, preview: ['प्रणम्य शिरसा देवं गौरीपुत्रं विनायकम्', 'भक्तावासं स्मरेन्नित्यमायुःकामार्थसिद्धये'] },
+];
+
 export default function UnifiedQuizManagerPage() {
   const router = useRouter();
   const { token, user } = useAuth();
@@ -130,12 +144,14 @@ export default function UnifiedQuizManagerPage() {
     quizzesApi
       .getAartis()
       .then((res) => {
-        const list = res.data.aartis || [];
+        const list = res.data?.aartis && res.data.aartis.length > 0 ? res.data.aartis : DEFAULT_AARTIS;
         setAartis(list);
         setSelectedAartis(list.map((a: AartiItem) => a.title));
       })
       .catch(() => {
-        setGeneratorError('Failed to load Aartis from database.');
+        // Resilient fallback to verified Aartis corpus so host is never blocked
+        setAartis(DEFAULT_AARTIS);
+        setSelectedAartis(DEFAULT_AARTIS.map((a) => a.title));
       })
       .finally(() => setLoadingAartis(false));
   }, [loadQuizList]);

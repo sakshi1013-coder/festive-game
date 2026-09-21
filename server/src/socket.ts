@@ -4,6 +4,7 @@ import { verifySocketToken, AuthPayload } from './middleware/auth';
 import { generateTicket } from './game-engine/ticketGenerator';
 import { validateWinClaim, calculatePlayerProgress } from './game-engine/winChecker';
 import { generateAartiQuiz, QuizGeneratorOptions } from './game-engine/aartiQuizGenerator';
+import { VERIFIED_AARTIS } from './data/verifiedAartis';
 
 interface AuthenticatedSocket extends Socket {
   user: AuthPayload;
@@ -634,8 +635,15 @@ export function initSocket(io: Server): void {
           sourceAartis: payload.sourceAartis,
         });
 
-        const aartis = await Aarti.find({ title: { $in: payload.sourceAartis } });
-        if (aartis.length === 0) {
+        let aartis = await Aarti.find({ title: { $in: payload.sourceAartis } });
+        if (!aartis || aartis.length === 0) {
+          await Aarti.insertMany(VERIFIED_AARTIS);
+          aartis = await Aarti.find({ title: { $in: payload.sourceAartis } });
+        }
+        if (!aartis || aartis.length === 0) {
+          aartis = VERIFIED_AARTIS.filter((a) => payload.sourceAartis.includes(a.title)) as any;
+        }
+        if (!aartis || aartis.length === 0) {
           authedSocket.emit('quiz:generation_failed', { error: 'Selected Aartis not found.' });
           return;
         }

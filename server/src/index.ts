@@ -11,9 +11,27 @@ import quizzesRoutes from './routes/quizzes';
 import leaderboardRoutes from './routes/leaderboard';
 import { initSocket } from './socket';
 
+import { Aarti } from './models/index';
+import { VERIFIED_AARTIS } from './data/verifiedAartis';
+
 const PORT = parseInt(process.env.PORT || '10000', 10);
 const MONGODB_URI = process.env.MONGODB_URI || '';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+async function ensureAartisSeeded() {
+  try {
+    const count = await Aarti.countDocuments();
+    if (count === 0) {
+      console.log('[DB] Aarti collection is empty. Auto-seeding verified Aartis...');
+      await Aarti.insertMany(VERIFIED_AARTIS);
+      console.log(`[DB] Successfully auto-seeded ${VERIFIED_AARTIS.length} verified Aartis into MongoDB!`);
+    } else {
+      console.log(`[DB] Found ${count} verified Aartis in MongoDB.`);
+    }
+  } catch (err) {
+    console.error('[DB] Failed to check/seed Aartis:', err);
+  }
+}
 
 async function main() {
   // ─── MongoDB ───────────────────────────────────────────────────────────────
@@ -24,6 +42,7 @@ async function main() {
 
   await mongoose.connect(MONGODB_URI, { dbName: 'bappaverse' });
   console.log('[DB] Connected to MongoDB Atlas');
+  await ensureAartisSeeded();
 
   // ─── Express ──────────────────────────────────────────────────────────────
   const app = express();

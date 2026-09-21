@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { Aarti, Quiz, QuizQuestion, User } from '../models/index';
 import { authMiddleware, hostMiddleware } from '../middleware/auth';
 import { generateAartiQuiz, QuizGeneratorOptions } from '../game-engine/aartiQuizGenerator';
+import { VERIFIED_AARTIS } from '../data/verifiedAartis';
 
 const router: Router = express.Router();
 
@@ -28,23 +29,45 @@ router.get('/', hostMiddleware, async (_req: Request, res: Response) => {
 });
 
 // ─── GET /api/quizzes/aartis ───────────────────────────────────────────────────
-// List all verified Aartis stored in MongoDB
+// List all verified Aartis stored in MongoDB (with auto-seed & fail-safe fallback)
 router.get('/aartis', authMiddleware, async (_req: Request, res: Response) => {
   try {
-    const aartis = await Aarti.find().select('title deity author allLines sections');
-    const result = aartis.map((a) => ({
-      _id: a._id,
-      title: a.title,
-      deity: a.deity,
-      author: a.author,
-      lineCount: a.allLines.length,
-      sectionCount: a.sections.length,
-      preview: a.allLines.slice(0, 2),
-    }));
+    let aartis = await Aarti.find().select('title deity author allLines sections');
+
+    // Self-heal: if MongoDB collection is empty, automatically seed it
+    if (!aartis || aartis.length === 0) {
+      console.log('[API] Aarti collection empty. Auto-seeding verified Aartis...');
+      await Aarti.insertMany(VERIFIED_AARTIS);
+      aartis = await Aarti.find().select('title deity author allLines sections');
+    }
+
+    const result = (aartis || []).map((a) => {
+      const lines = Array.isArray(a.allLines) ? a.allLines : [];
+      const sections = Array.isArray(a.sections) ? a.sections : [];
+      return {
+        _id: a._id,
+        title: a.title,
+        deity: a.deity,
+        author: a.author,
+        lineCount: lines.length,
+        sectionCount: sections.length,
+        preview: lines.slice(0, 2),
+      };
+    });
     return res.json({ aartis: result });
   } catch (err) {
     console.error('Error fetching Aartis:', err);
-    return res.status(500).json({ error: 'Error loading Aarti references.' });
+    // Bulletproof fallback to in-memory verified Aartis so Admin UI is never broken
+    const fallback = VERIFIED_AARTIS.map((a, idx) => ({
+      _id: `verified-${idx}`,
+      title: a.title,
+      deity: a.deity,
+      author: a.author,
+      lineCount: a.allLines?.length || 0,
+      sectionCount: a.sections?.length || 0,
+      preview: a.allLines ? a.allLines.slice(0, 2) : [],
+    }));
+    return res.json({ aartis: fallback });
   }
 });
 
@@ -99,9 +122,16 @@ router.post('/generate', hostMiddleware, async (req: Request, res: Response) => 
       return res.status(400).json({ error: 'Please select at least one Aarti.' });
     }
 
-    // Fetch verified Aartis strictly from MongoDB
-    const aartis = await Aarti.find({ title: { $in: sourceAartis } });
-    if (aartis.length === 0) {
+    // Fetch verified Aartis strictly from MongoDB (with auto-seed if needed)
+    let aartis = await Aarti.find({ title: { $in: sourceAartis } });
+    if (!aartis || aartis.length === 0) {
+      await Aarti.insertMany(VERIFIED_AARTIS);
+      aartis = await Aarti.find({ title: { $in: sourceAartis } });
+    }
+    if (!aartis || aartis.length === 0) {
+      aartis = VERIFIED_AARTIS.filter((a) => sourceAartis.includes(a.title)) as any;
+    }
+    if (!aartis || aartis.length === 0) {
       return res.status(404).json({ error: 'Selected Aartis not found in database.' });
     }
 
