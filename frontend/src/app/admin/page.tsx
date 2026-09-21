@@ -28,9 +28,6 @@ export default function AdminDashboard() {
           <h1 className="text-3xl font-black text-bappa-text">Host Dashboard</h1>
           <p className="text-bappa-muted mt-1">Manage your Ganapati festival games</p>
         </div>
-        <Link href="/admin/housie" className="btn-primary">
-          <Gamepad2 className="w-4 h-4" /> Housie Games
-        </Link>
       </div>
 
       {/* Stats */}
