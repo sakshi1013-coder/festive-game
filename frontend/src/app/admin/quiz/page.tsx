@@ -379,62 +379,15 @@ export default function UnifiedQuizManagerPage() {
 
   return (
     <div className="space-y-8 page-transition max-w-5xl mx-auto pb-16">
-      {/* Top Header & Tab Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pastel-lavender/60 text-bappa-text font-bold text-xs uppercase tracking-wider mb-2">
-            ✨ Quiz Control Center
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-black text-bappa-text tracking-tight">Quiz Manager</h1>
-          <p className="text-bappa-muted text-sm mt-1">
-            Generate dynamic AI Aarti quizzes or manage festival trivia questions.
-          </p>
+      {/* Top Header */}
+      <div>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pastel-lavender/60 text-bappa-text font-bold text-xs uppercase tracking-wider mb-2">
+          ✨ Quiz Control Center
         </div>
-
-        {/* Unified Tabs */}
-        <div className="flex flex-wrap items-center bg-white p-1.5 rounded-2xl border border-pastel-border/80 shadow-pastel-sm gap-1">
-          <button
-            type="button"
-            onClick={() => setActiveTab('generator')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
-              activeTab === 'generator'
-                ? 'bg-pastel-blue text-bappa-text shadow-xs'
-                : 'text-bappa-muted hover:text-bappa-text'
-            }`}
-          >
-            <Sparkles className="w-4 h-4 text-primary" /> Create Quiz
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab('history');
-              loadQuizList();
-            }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
-              activeTab === 'history'
-                ? 'bg-pastel-blue text-bappa-text shadow-xs'
-                : 'text-bappa-muted hover:text-bappa-text'
-            }`}
-          >
-            <Layers className="w-4 h-4 text-primary" /> Quizzes Done & Live
-            {quizList.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 bg-white/80 text-bappa-text text-[10px] font-black rounded-full shadow-xs">
-                {quizList.length}
-              </span>
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('bank')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
-              activeTab === 'bank'
-                ? 'bg-pastel-blue text-bappa-text shadow-xs'
-                : 'text-bappa-muted hover:text-bappa-text'
-            }`}
-          >
-            <BookOpen className="w-4 h-4 text-primary" /> Trivia Question Bank
-          </button>
-        </div>
+        <h1 className="text-3xl sm:text-4xl font-black text-bappa-text tracking-tight">Quiz Manager</h1>
+        <p className="text-bappa-muted text-sm mt-1">
+          Generate dynamic AI Aarti quizzes or manage festival trivia questions.
+        </p>
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════════════
